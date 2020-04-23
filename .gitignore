@@ -2,7 +2,7 @@
 
 # Relevant python files.
 !*.py
-main.py
+test_ground.py
 
 # Model plots
 !model_plots/
