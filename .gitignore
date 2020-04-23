@@ -1,2 +1,10 @@
 *
+
+# Relevant python files.
 !*.py
+main.py
+
+# Model plots
+!model_plots/
+!model_plots/*
+
