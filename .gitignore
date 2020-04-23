@@ -8,3 +8,7 @@ test_ground.py
 !model_plots/
 !model_plots/*
 
+# Pycharm project settings
+!.idea/
+!.idea/runConfigurations/
+!.idea/runConfigurations/*

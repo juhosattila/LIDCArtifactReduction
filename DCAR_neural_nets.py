@@ -9,6 +9,7 @@ from tensorflow.keras.layers import Input, Conv2D, \
 
 from RadonLayer import RadonLayer, RadonParams
 
+
 class ModelInterface:
     object_counter = {}
 
@@ -39,7 +40,6 @@ class ModelInterface:
 
 # TODO: decide whether dropout and batchnorm are necessary
 # TODO: in upsampling what interpolation technique to use
-# TODO: input_shape should be fixed
 # TODO: setting training needs compiling
 class DCAR_UNet(ModelInterface):
     """Defaults are made according to article
@@ -49,6 +49,7 @@ class DCAR_UNet(ModelInterface):
     Args:
         input_shape: tuple of integers that are divisible by 2^4
     """
+
     def __init__(self, input_shape=(256, 256), has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_width_factor=64, name=None):
         super().__init__(name)
@@ -146,7 +147,7 @@ class DCAR_UNet(ModelInterface):
         u0 = self._conv_activation_possible_batchnorm(1)(u0)
 
         diff_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
-                              kernel_initializer=self._conv_layer_initalizer)(u0)
+                            kernel_initializer=self._conv_layer_initalizer)(u0)
 
         output_layer = Add()([input_layer, diff_layer])
 
@@ -168,7 +169,7 @@ class DCAR_UNet(ModelInterface):
 
 
 class DCAR_TrainingNetwork(ModelInterface):
-    def __init__(self, radon_params: RadonParams, target_model: DCAR_UNet=None, name=None):
+    def __init__(self, radon_params: RadonParams, target_model: DCAR_UNet = None, name=None):
         super().__init__(name)
         self._target_model = target_model if target_model is not None else DCAR_UNet()
         self._input_shape = target_model.input_shape
@@ -188,7 +189,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         expected_output_layer = target_output_layer
         expected_Radon_layer = RadonLayer(**self._radon_params.__dict__)(expected_output_layer)
-        #TODO: introduce other layers
+
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)
 
