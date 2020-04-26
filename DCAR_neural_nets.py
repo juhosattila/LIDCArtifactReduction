@@ -188,7 +188,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         target_output_layer = self._target_model.output_layer
 
         expected_output_layer = target_output_layer
-        expected_Radon_layer = RadonLayer(**self._radon_params.__dict__)(expected_output_layer)
+        expected_Radon_layer = RadonLayer(self._radon_params)(expected_output_layer)
 
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)

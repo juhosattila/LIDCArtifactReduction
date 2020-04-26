@@ -12,15 +12,23 @@ class RadonParams:
 
 
 class RadonLayer(Layer):
-    def __init__(self, angles: np.ndarray, is_degree=True, projection_width: int = None, name=None, **kwargs):
+    def __init__(self, angles_or_params: np.ndarray or RadonParams,
+                 is_degree=True, projection_width: int = None,
+                 name=None):
         """
         Args:
             projection_width: is the width of each projection, given in pixels. So it is an integer.
         """
         super().__init__(trainable=False, name=name)
-        self._angles = angles
-        self._is_degree = is_degree
-        self._projection_width = projection_width
+
+        if isinstance(angles_or_params, RadonParams):
+            self._angles = angles_or_params.angles
+            self._is_degree = angles_or_params.is_degree
+            self._projection_width = angles_or_params.projection_width
+        else:
+            self._angles = angles_or_params
+            self._is_degree = is_degree
+            self._projection_width = projection_width
 
         # To be assigned after call to `build'.
         self._radon_transformation = None

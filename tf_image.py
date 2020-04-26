@@ -121,7 +121,7 @@ class ParallelRadonTransform:
 
     def apply(self, imgs: List[TensorLike]):
         """
-         Args:
+        Args:
             imgs: List of Tensors in NHW or NHWC mode. Remember that H=W. C should be 1
 
         Raises:
@@ -145,3 +145,51 @@ class ParallelRadonTransform:
 
     def apply_one_image(self, img):
         return self.apply(tf.expand_dims(img, axis=0))
+
+
+def min_max_scale(img_or_imgs: TensorLike):
+    """Scale in a min-max fashion a list of Tensors.
+
+    Args:
+        img_or_imgs: a NHWC or HWC mode tensor.
+    """
+    img_or_imgs = tf.convert_to_tensor(img_or_imgs, dtype=tf.float32)
+
+    per_image_min = tf.reduce_min(img_or_imgs, axis=[-3, -2, -1])
+    per_image_max = tf.reduce_max(img_or_imgs, axis=[-3, -2, -1])
+    per_image_diff = per_image_max - per_image_min
+
+    broadcastable_shape = tf.concat([tf.shape(per_image_diff), [1, 1, 1]], axis=0)
+
+    diff_ex = tf.reshape(per_image_diff, shape=broadcastable_shape)
+    min_ex = tf.reshape(per_image_min, shape=broadcastable_shape)
+
+    #diff_ex = tf.expand_dims(tf.expand_dims(per_image_diff, axis=[-1]), axis=[-1])
+    #min_ex = tf.expand_dims(tf.expand_dims(per_image_min, axis=[-1]), axis=[-1])
+
+    return (img_or_imgs - min_ex) / diff_ex
+
+
+def scale_HU2Radio(imgs: TensorLike):
+    """Scale an absolute grey level image to linear attenuation coefficient space.
+    absolute grey level = HU + 1024. This transformation also zeroes out nonrelevant regions.
+
+    Air is considered to have level 0. Bone is considered to have value 1000.
+
+    Args:
+        imgs: Tensor in NHWC or HWC format.
+    """
+    imgs = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs = tf.where(imgs >= 0, imgs, tf.zeros_like(imgs))
+
+    per_image_min = tf.constant([0.], dtype=tf.float32)
+    per_image_max = tf.constant([1000.], dtype=tf.float32)
+
+    per_image_diff = per_image_max - per_image_min
+    broadcastable_shape = tf.concat([tf.shape(per_image_diff), [1, 1, 1]], axis=0)
+    diff_ex = tf.reshape(per_image_diff, shape=broadcastable_shape)
+    min_ex = tf.reshape(per_image_min, shape=broadcastable_shape)
+
+    return (imgs - min_ex) / diff_ex
+
+
