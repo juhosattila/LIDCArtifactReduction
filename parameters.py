@@ -6,6 +6,4 @@ import platform
 if platform.system() == 'Windows':
     DATA_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction\\images"
 else: # 'Linux'
-    # TODO :set
-    raise NotImplementedError()
-    DATA_DIRECTORY = '~/'
+    DATA_DIRECTORY = '~/LIDCArtifactReduction/images'
