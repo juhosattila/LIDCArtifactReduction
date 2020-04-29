@@ -1,42 +1,8 @@
+import parameters
 import pylidc as pl
 import numpy as np
-from skimage.exposure import rescale_intensity
-import os
-
 import tensorflow as tf
-from tensorflow_addons.utils.types import TensorLike
-
-FILEDIR = 'images'
-FILENAME = 'sample_imgs.npz'
-IMG_ARRAY_NAME = "imgs"
-
-file = os.path.join(FILEDIR, FILENAME)
-
-
-def save_imgs(imgs):
-    np.savez_compressed(file, **{IMG_ARRAY_NAME: imgs})
-
-
-def sample_preprocess_dicom():
-    pid = 'LIDC-IDRI-0001'
-    scan = pl.query(pl.Scan).filter(pl.Scan.patient_id == pid).first()
-    vol = np.transpose(scan.to_volume(), [2, 0, 1])
-    # one_pic = vol[55]
-    multiple_pics = vol[32:64]
-
-    # pic_rescaled = rescale_intensity(one_pic, out_range=(0.0, 1.0))
-    imgs_rescaled = rescale_intensity(multiple_pics, out_range=(0.0, 1.0))
-    save_imgs(imgs_rescaled)
-
-
-def sample_load_imgs():
-    with np.load(file) as data:
-        sample_img = data[IMG_ARRAY_NAME]
-    return sample_img
-
-
-
-
+from tf_image import scale_HU2Radio
 
 def my_to_volume(scan, verbose=False):
     images = scan.load_all_dicom_images(verbose=verbose)
@@ -81,3 +47,13 @@ class DicomLoader():
         return array
 
 
+# TODO
+#@tf.function
+def run_transformations(data, radon_trans):
+    data_tf = tf.convert_to_tensor(data, dtype=tf.float32)
+    data_tf = tf.expand_dims(data_tf, axis=-1)
+    resized_data = tf.image.resize(data_tf,
+                        size=[parameters.IMG_SIDE_LENGTH, parameters.IMG_SIDE_LENGTH])
+    scaled_data = scale_HU2Radio(resized_data)
+    data_sino = radon_trans(scaled_data)
+    return scaled_data.numpy(), data_sino.numpy()

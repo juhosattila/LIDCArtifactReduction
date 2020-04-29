@@ -3,6 +3,7 @@
 # Relevant python files.
 !*.py
 test_ground.py
+sample_dicom_preprocess.py
 
 # Model plots
 !model_plots/
