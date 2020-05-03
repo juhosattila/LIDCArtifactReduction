@@ -72,6 +72,3 @@ class LIDCDataIterator(Iterator):
         return sino
 
 
-
-
-
