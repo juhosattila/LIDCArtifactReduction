@@ -1,44 +1,34 @@
 import numpy as np
-from dicom_preprocess import DicomLoader, run_transformations
-from tf_image import ParallelRadonTransform
+
 import parameters
-import os
+from dicom_preprocess import DicomLoader
+
+from Radon_transformation import RadonParams
+from offline_transformation import ResizeRescaleRadonOfflineTransformation
 
 
-def run():
+def run(dl):
+    img_side_length = parameters.IMG_SIDE_LENGTH
+    radon_params = RadonParams(angles=np.linspace(0.0, 180.0, parameters.NR_OF_SPARSE_ANGLES))
+    offline_transformation = ResizeRescaleRadonOfflineTransformation(img_side_length, radon_params)
+
+    dl.run_offline_transformations(offline_transformation)
+
+
+def main():
     dl = DicomLoader(batch_size=5)
-    radon_trans = ParallelRadonTransform(img_side_length=parameters.IMG_SIDE_LENGTH,
-                    angles=np.linspace(0.0, 180.0, parameters.NR_OF_SPARSE_ANGLES))
-    i = 0
-    for data_batch in dl:
-        data_batch_resized, data_batch_sino = run_transformations(data_batch, radon_trans)
-        for rec, sino in zip(data_batch_resized, data_batch_sino):
-            filename = '{:05}'.format(i)
-            i += 1
-            file = os.path.join(parameters.DATA_DIRECTORY, filename)
-            np.savez(file=file, rec=rec, sino=sino)
+    run(dl)
 
 
 def test():
-    patient_list = [1, 3, 5, 14]
+    patient_list = [1, 3]#, 5, 14]
     patient_ids = ["LIDC-IDRI-" + "{:04d}".format(id) for id in patient_list]
 
     dl = DicomLoader(batch_size=2).filter(patient_ids)
-
-    radon_trans = ParallelRadonTransform(img_side_length=parameters.IMG_SIDE_LENGTH,
-                    angles=np.linspace(0.0, 180.0, parameters.NR_OF_SPARSE_ANGLES))
-    i = 0
-    for data_batch in dl:
-        data_batch_resized, data_batch_sino = run_transformations(data_batch[:20], radon_trans)
-        for rec, sino in zip(data_batch_resized, data_batch_sino):
-            filename = '{:05}'.format(i)
-            i += 1
-            file = os.path.join(parameters.DATA_DIRECTORY, filename)
-            np.savez(file=file, rec=rec, sino=sino)
-
+    run(dl)
 
 if __name__ == "__main__":
-    #run()
+    #main()
     test()
 
 

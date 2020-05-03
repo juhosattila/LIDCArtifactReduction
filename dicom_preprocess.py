@@ -1,13 +1,47 @@
-import parameters
-import pylidc as pl
+from typing import List
 import numpy as np
-import tensorflow as tf
-from tf_image import scale_HU2Radio
 
-def my_to_volume(scan, verbose=False):
-    images = scan.load_all_dicom_images(verbose=verbose)
-    volume = np.stack([img.pixel_array for img in images], axis=0).astype('float32')
-    return volume
+import pylidc as pl
+
+from offline_transformation import DicomOfflineTransformation
+from array_streams import ArrayStream
+
+
+class ScanWrapper:
+    def __init__(self, scan: pl.Scan):
+        self._scan = scan
+
+        self._data_set = False
+        self._volume = None
+        self._intercepts = None
+        self._slopes = None
+
+        self._dtype = np.float32
+
+    def _set_data(self, verbose=False):
+        if self._data_set:
+            return
+
+        images = self._scan.load_all_dicom_images(verbose=verbose)
+        self._volume = np.stack([img.pixel_array for img in images], axis=0).astype(self._dtype)
+        self._intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
+        self._slopes = np.array([img.RescaleSlope for img in images]).astype(self._dtype)
+        self._data_set = True
+
+    @property
+    def volume(self):
+        self._set_data()
+        return self._volume
+
+    @property
+    def intercepts(self):
+        self._set_data()
+        return self._intercepts
+
+    @property
+    def slopes(self):
+        self._set_data()
+        return self._slopes
 
 
 class DicomLoader():
@@ -30,30 +64,28 @@ class DicomLoader():
 
     def __iter__(self):
         self._actual_element = 0
-        self._scan_list = self._scan.all()
+        self._scanw_list = [ScanWrapper(scan) for scan in self._scan.all()]
         return self
 
-    def __next__(self):
-        if self._actual_element >= len(self._scan_list):
+    def __next__(self) -> List[ScanWrapper]:
+        if self._actual_element >= len(self._scanw_list):
             raise StopIteration
 
-        after_last_element = min(self._actual_element + self.batch_size, len(self._scan_list))
-        relevant_scan_list = self._scan_list[self._actual_element: after_last_element]
-        array_list = [my_to_volume(scan) for scan in relevant_scan_list]
-        array = np.concatenate(array_list, axis=0)
-
+        after_last_element = min(self._actual_element + self.batch_size, len(self._scanw_list))
+        relevant_scan_list = self._scanw_list[self._actual_element: after_last_element]
         self._actual_element = after_last_element
+        return relevant_scan_list
 
-        return array
+    def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
+                                    array_stream = ArrayStream.RecSinoInstance()):
+        i = 0
+        for scanw_batch in self:
+            volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
+            intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
+            slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
 
-
-# TODO
-#@tf.function
-def run_transformations(data, radon_trans):
-    data_tf = tf.convert_to_tensor(data, dtype=tf.float32)
-    data_tf = tf.expand_dims(data_tf, axis=-1)
-    resized_data = tf.image.resize(data_tf,
-                        size=[parameters.IMG_SIDE_LENGTH, parameters.IMG_SIDE_LENGTH])
-    scaled_data = scale_HU2Radio(resized_data)
-    data_sino = radon_trans(scaled_data)
-    return scaled_data.numpy(), data_sino.numpy()
+            output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
+            for output_data in output_data_batch:
+                filename = '{:05}'.format(i)
+                i += 1
+                array_stream.save_arrays(filename, output_data)
