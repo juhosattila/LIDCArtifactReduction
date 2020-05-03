@@ -13,23 +13,23 @@ class LIDCDataGenerator:
     It can provide iterator objects for training, validation and testing.
     """
     def __init__(self, validation_split=0.1, test_split=0.1, batch_size=16,
-                 array_stream: ArrayStream = ArrayStream.instance()):
+                 array_stream: ArrayStream = ArrayStream.RecSinoInstance()):
         self._batch_size = batch_size
         self._array_stream = array_stream
 
-        filenames = self._array_stream.get_names()
-        validtest_split = validation_split + test_split
-        train_filenames, valid_test_filenames = train_test_split(filenames,
-            train_size=1.0-validtest_split, shuffle=True)
-        valid_filenames, test_filenames = train_test_split(valid_test_filenames,
-            train_size=validation_split / validtest_split, shuffle=True)
+        arrnames = self._array_stream.get_names()
+        validation_test_split = validation_split + test_split
+        train_arrnames, valid_test_arrnames = train_test_split(arrnames,
+            train_size=1.0-validation_test_split, shuffle=True)
+        valid_arrnames, test_arrnames = train_test_split(valid_test_arrnames,
+            train_size=validation_split / validation_test_split, shuffle=True)
 
-        self._train_iterator = self.get_iterator(train_filenames, preprocess=True)
-        self._valid_iterator = self.get_iterator(valid_filenames, preprocess=False)
-        self._test_iterator = self.get_iterator(test_filenames, preprocess=False)
+        self._train_iterator = self.get_iterator(train_arrnames, preprocess=True)
+        self._valid_iterator = self.get_iterator(valid_arrnames, preprocess=False)
+        self._test_iterator = self.get_iterator(test_arrnames, preprocess=False)
 
-    def get_iterator(self, filenames, preprocess):
-        return LIDCDataIterator(filenames, self._batch_size, preprocess,
+    def get_iterator(self, arrnames, preprocess):
+        return LIDCDataIterator(arrnames, self._batch_size, preprocess,
                                 self._array_stream)
 
     @property
@@ -46,11 +46,11 @@ class LIDCDataGenerator:
 
 
 class LIDCDataIterator(Iterator):
-    def __init__(self, filenames, batch_size, preprocess, array_stream: ArrayStream):
-        self._filenames = filenames
+    def __init__(self, arrnames, batch_size, preprocess, array_stream: ArrayStream):
+        self._arrnames = arrnames
         self._preprocess = preprocess
         self._array_stream = array_stream
-        super(self).__init__(len(filenames), batch_size, shuffle=True, seed=None)
+        super(self).__init__(len(arrnames), batch_size, shuffle=True, seed=None)
 
     def _get_batches_of_transformed_samples(self, index_array):
         """Get images with indices in index array, transform them.
@@ -58,7 +58,7 @@ class LIDCDataIterator(Iterator):
         # TODO: delete
         # indexek alapján kiválaszt jókat. Betölt. Transzformál, berendez kimenetet és visszaad
         goodrec_sino_pairs = [self._array_stream.load_arrays(filename)
-                              for filename in self._filenames[index_array]]
+                              for filename in self._arrnames[index_array]]
         goodrecs = [pair[0] for pair in goodrec_sino_pairs]
         goodsinos = [pair[1] for pair in goodrec_sino_pairs]
 

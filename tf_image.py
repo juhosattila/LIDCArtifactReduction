@@ -116,20 +116,6 @@ def scale_HU2Radio(imgs: TensorLike, intercepts, slopes):
     Args:
         imgs: Tensor in NHWC or HWC format.
     """
-    # TODO: delete, if tested
-    # imgs = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    # imgs = tf.where(imgs >= 0, imgs, tf.zeros_like(imgs))
-    #
-    # per_image_min = tf.constant([0.], dtype=tf.float32)
-    # per_image_max = tf.constant([1000.], dtype=tf.float32)
-    #
-    # per_image_diff = per_image_max - per_image_min
-    # broadcastable_shape = tf.concat([tf.shape(per_image_diff), [1, 1, 1]], axis=0)
-    # diff_ex = tf.reshape(per_image_diff, shape=broadcastable_shape)
-    # min_ex = tf.reshape(per_image_min, shape=broadcastable_shape)
-    #
-    # return (imgs - min_ex) / diff_ex
-
     imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
 
     def expand_dim_per_image_data(per_image_data: TensorLike):

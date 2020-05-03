@@ -1,8 +1,11 @@
 IMG_SIDE_LENGTH = 256
 NR_OF_SPARSE_ANGLES = 60
 
-import platform
+import platform, os
 if platform.system() == 'Windows':
-    DATA_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction\\images"
+    PROJECT_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction"
 else: # 'Linux'
-    DATA_DIRECTORY = '~/LIDCArtifactReduction/images'
+    PROJECT_DIRECTORY = '~/LIDCArtifactReduction/'
+
+DATA_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'images')
+TEST_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'sample_images')

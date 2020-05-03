@@ -43,3 +43,8 @@ class ArrayStream:
         if cls._rec_sino_instance is None:
             cls._rec_sino_instance = ArrayStream(array_names=['rec', 'sino'])
         return cls._rec_sino_instance
+
+
+class RecSinoArrayStream(ArrayStream):
+    def __init__(self, dir=None):
+        super().__init__(dir=dir, array_names=['rec', 'sino'])

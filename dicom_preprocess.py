@@ -43,6 +43,10 @@ class ScanWrapper:
         self._set_data()
         return self._slopes
 
+    def __len__(self):
+        self._set_data()
+        return len(self._volume)
+
 
 class DicomLoader():
     def __init__(self, batch_size=10):
