@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 
 import pylidc as pl
@@ -27,6 +27,10 @@ class ScanWrapper:
         self._intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
         self._slopes = np.array([img.RescaleSlope for img in images]).astype(self._dtype)
         self._data_set = True
+
+    @property
+    def patient_id(self):
+        return self._scan.patient_id
 
     @property
     def volume(self):
@@ -81,15 +85,42 @@ class DicomLoader():
         return relevant_scan_list
 
     def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
-                                    array_stream = ArrayStream.RecSinoInstance()):
-        i = 0
-        for scanw_batch in self:
-            volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
-            intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
-            slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
+                                    array_stream = ArrayStream.RecSinoInstance(),
+                                    mode = 'combined'):
+        """
+        Args:
+             mode: one of 'patient' or 'combined'
+        """
+        if mode == 'combined':
+            i = 0
+            for scanw_batch in self:
+                volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
+                intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
+                slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
 
-            output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
-            for output_data in output_data_batch:
-                filename = '{:05}'.format(i)
-                i += 1
-                array_stream.save_arrays(filename, output_data)
+                output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
+                for output_data in output_data_batch:
+                    filename = '{:05}'.format(i)
+                    i += 1
+                    array_stream.save_arrays(filename, output_data)
+
+        else: # mode == 'patient'
+
+            for scanw_batch in self:
+                volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
+                intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
+                slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
+
+                patient_ids = [scanw.patient_id for scanw in scanw_batch]
+                nrs_imgs = [len(scanw) for scanw in scanw_batch]
+                imgs_boundaries = [sum(nrs_imgs[:i+1]) for i in range(len(nrs_imgs)-1)]
+
+                output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
+                patient_data_batch = [output_data_batch[i:j]
+                                      for i,j in zip([0] + imgs_boundaries, imgs_boundaries + [None])]
+
+                for patient_id, patient_data in zip(patient_ids, patient_data_batch):
+                    array_stream.switch_dir(patient_id)
+                    for id, img_data in enumerate(patient_data):
+                        arrname = '{:04}'.format(id)
+                        array_stream.save_arrays(arrname, img_data)

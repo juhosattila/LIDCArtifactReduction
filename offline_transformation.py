@@ -11,6 +11,11 @@ class DicomOfflineTransformation:
         pass
 
 
+class DummyOfflineTransformation(DicomOfflineTransformation):
+    def __call__(self, data_batch, intercepts, slopes):
+        return list(zip(data_batch, data_batch))
+
+
 class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
     """Resizes images to the target size of the received Radon transformation"""
     def __init__(self, resize_size: int, radon_params: RadonParams):
@@ -20,9 +25,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
 
     def __call__(self, data_batch, intercepts, slopes):
         scaled_data_batch, data_sino_batch = self._tf_transformation(data_batch, intercepts, slopes)
-
-        for scaled_data, data_sino in zip(scaled_data_batch, data_sino_batch):
-            yield [scaled_data, data_sino]
+        return list(zip(scaled_data_batch, data_sino_batch))
 
     # TODO : comment out directive
     # @tf.function
