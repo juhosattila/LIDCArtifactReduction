@@ -86,7 +86,7 @@ class DicomLoader():
 
     def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
                                     array_stream = ArrayStream.RecSinoInstance(),
-                                    mode = 'combined'):
+                                    mode = 'patient'):
         """
         Args:
              mode: one of 'patient' or 'combined'

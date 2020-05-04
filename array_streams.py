@@ -1,3 +1,4 @@
+import itertools
 import os
 from typing import List
 
@@ -8,15 +9,15 @@ import parameters
 
 class ArrayStream:
     def __init__(self, dir=None, array_names=None):
-        self.base_dir = dir
-        if self.base_dir is None:
-            self.base_dir = parameters.DATA_DIRECTORY
+        self._base_dir = dir
+        if self._base_dir is None:
+            self._base_dir = parameters.DATA_DIRECTORY
 
-        if not os.path.exists(self.base_dir):
-            os.mkdir(self.base_dir)
+        if not os.path.exists(self._base_dir):
+            os.mkdir(self._base_dir)
 
         self._array_names = array_names
-        self.actual_path = self.base_dir
+        self.actual_path = self._base_dir
 
     def save_arrays(self, name, arrays: List[np.ndarray]):
         file = os.path.join(self.actual_path, name)
@@ -27,11 +28,31 @@ class ArrayStream:
 
         np.savez(file=file, **data_dict)
 
-    def get_names(self):
-        return os.listdir(self.base_dir)
+    def get_directory_names(self):
+        with os.scandir(self._base_dir) as dirit:
+            result = [d.name for d in dirit if d.is_dir()]
+        return result
 
-    def load_arrays(self, name):
-        file = os.path.join(self.base_dir, name)
+    def _get_filenames(self, inner_path='.'):
+        path = os.path.join(self._base_dir, inner_path)
+        with os.scandir(path) as dirit:
+            result = [os.path.join(inner_path, f.name) for f in dirit if f.is_file()]
+        return result
+
+    def get_names_with_dir(self, dir_or_dirs : str or List[str] = None):
+        if dir_or_dirs is None:
+            return self._get_filenames()
+
+        dirs = dir_or_dirs
+        if isinstance(dirs, str):
+            dirs = [dirs]
+
+        list_results = [self._get_filenames(direc) for direc in dirs]
+        result = list(itertools.chain.from_iterable(list_results))
+        return result
+
+    def load_arrays(self, name_with_dir):
+        file = os.path.join(self._base_dir, name_with_dir)
         result = []
         with np.load(file) as data:
             for key in self._array_names:
@@ -39,16 +60,16 @@ class ArrayStream:
         return result
 
     def create_dir(self, dirname):
-        path = os.path.join(self.base_dir, dirname)
+        path = os.path.join(self._base_dir, dirname)
         if not os.path.exists(path):
             os.mkdir(path)
 
     def switch_dir(self, dirname):
         self.create_dir(dirname)
-        self.actual_path = os.path.join(self.base_dir, dirname)
+        self.actual_path = os.path.join(self._base_dir, dirname)
 
     def unswitch(self):
-        self.actual_path = self.base_dir
+        self.actual_path = self._base_dir
 
     _rec_sino_instance = None
     @classmethod
