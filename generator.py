@@ -56,6 +56,7 @@ class LIDCDataIterator(Iterator):
         """Get images with indices in index array, transform them.
         """
         # TODO: delete
+        from tensorflow.keras.preprocessing.image import ImageDataGenerator, Iterator, DirectoryIterator
         # indexek alapján kiválaszt jókat. Betölt. Transzformál, berendez kimenetet és visszaad
         goodrec_sino_pairs = [self._array_stream.load_arrays(filename)
                               for filename in self._arrnames[index_array]]
