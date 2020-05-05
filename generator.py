@@ -15,13 +15,17 @@ class LIDCDataGenerator:
     It can provide iterator objects for training, validation and testing.
     """
     def __init__(self, validation_split=0.1, test_split=0.1, batch_size=16,
-                 array_stream: RecSinoArrayStream = RecSinoArrayStream(), mode='patient', shuffle : bool = True):
+                 array_stream: RecSinoArrayStream = RecSinoArrayStream(), mode='patient',
+                 shuffle : bool = True, add_noise_train : bool = True,
+                 verbose : bool = False, test_mode : bool = False):
         """
         :param mode: should be either 'patient' or 'combined'.
         """
         self._batch_size = batch_size
         self._array_stream = array_stream
         self._shuffle = shuffle
+        self._add_noise_train = add_noise_train
+        self._test_mode = test_mode
 
         validation_test_split = validation_split + test_split
 
@@ -45,30 +49,29 @@ class LIDCDataGenerator:
             valid_arrnames = self._array_stream.get_names_with_dir(valid_directories)
             test_arrnames = self._array_stream.get_names_with_dir(test_directories)
 
+        if verbose:
+            print("### LIDC Generator ###")
+            print("-----------------------------")
+            print("Train dirs: ", len(train_directories))
+            print("E.g.: ", train_directories[:5])
+            print("Train arrs: ", len(train_arrnames))
+            print("-----------------------------")
+            print("Valid dirs: ", len(valid_directories))
+            print("E.g.: ", valid_directories[:5])
+            print("Valid arrs: ", len(valid_arrnames))
+            print("-----------------------------")
+            print("Test dirs: ", len(test_directories))
+            print("E.g.: ", test_directories[:5])
+            print("Test arrs: ", len(test_arrnames))
+            print("-----------------------------")
 
-
-        #TODO: delete
-        print("Train dirs: ", len(train_directories))
-        print(train_directories)
-        print("Train arrs: ", len(train_arrnames))
-        print("---------------")
-        print("Valid dirs: ", len(valid_directories))
-        print(valid_directories)
-        print("Valid arrs: ", len(valid_arrnames))
-        print("---------------")
-        print("Test dirs: ", len(test_directories))
-        print(test_directories)
-        print("Test arrs: ", len(test_arrnames))
-        print("---------------")
-
-
-
-        self._train_iterator = self._get_iterator(train_arrnames, add_noise=True)
+        self._train_iterator = self._get_iterator(train_arrnames, add_noise=self._add_noise_train)
         self._valid_iterator = self._get_iterator(valid_arrnames, add_noise=False)
         self._test_iterator = self._get_iterator(test_arrnames, add_noise=False)
 
     def _get_iterator(self, arrnames, add_noise):
-        return LIDCDataIterator(arrnames, self._batch_size, add_noise, self._array_stream, self._shuffle)
+        return LIDCDataIterator(arrnames, self._batch_size, add_noise, self._array_stream,
+                                self._shuffle, self._test_mode)
 
     @property
     def train_iterator(self):
@@ -84,10 +87,12 @@ class LIDCDataGenerator:
 
 
 class LIDCDataIterator(KerasImgIterator):
-    def __init__(self, arrnames, batch_size, add_noise: bool, array_stream: RecSinoArrayStream, shuffle: bool):
+    def __init__(self, arrnames, batch_size, add_noise: bool, array_stream: RecSinoArrayStream,
+                 shuffle: bool, test_mode : bool):
         self._arrnames = arrnames
         self._add_noise = add_noise
         self._array_stream = array_stream
+        self._test_mode = test_mode
         super().__init__(len(arrnames), batch_size, shuffle=shuffle, seed=None)
 
     def _get_batches_of_transformed_samples(self, index_array):
@@ -99,12 +104,13 @@ class LIDCDataIterator(KerasImgIterator):
         good_recs = [pair[0] for pair in good_rec_sino_pairs]
         good_sinos = [pair[1] for pair in good_rec_sino_pairs]
 
-        # TODO: delete
-        # def _dummy_transform(self, sino):
-        #     return sino
-        # bad_recs = [_dummy_transform(good_sino) for good_sino in good_sinos]
-        bad_recs = [self._transform(good_sino) for good_sino in good_sinos]
+        if self._test_mode:
+            all = [self._transform(good_sino) for good_sino in good_sinos]
+            bad_recs = [a[0] for a in all]
+            bad_sinos = [a[1] for a in all]
+            return bad_recs, [good_recs, good_sinos], bad_sinos
 
+        bad_recs = [self._transform(good_sino) for good_sino in good_sinos]
         return self._output_format_manager(bad_recs, good_recs, good_sinos)
 
     def _output_format_manager(self, bad_recs, good_recs, good_sinos):
@@ -112,9 +118,6 @@ class LIDCDataIterator(KerasImgIterator):
         return bad_recs, [good_recs, good_sinos]
 
     def _transform(self, sino):
-        #TODO:
-        # zaj, rekonstrukcio
-
         # cut 3rd channel dimension, which has C=1
         sino2D = np.reshape(sino, newshape=np.shape(sino)[:2])
 
@@ -124,6 +127,10 @@ class LIDCDataIterator(KerasImgIterator):
         bad_rec = self._inverted_radon(sino2D)
         # add back channel dimension
         bad_rec = np.expand_dims(bad_rec, axis=-1)
+
+        if self._test_mode:
+            return bad_rec, sino2D
+
         return bad_rec
 
     def _inverted_radon(self, sino):
@@ -133,7 +140,33 @@ class LIDCDataIterator(KerasImgIterator):
         return res
 
     def _generate_noise(self, sino):
-        # TODO: decide: inline change or return new
-        return sino
+        """See documentation for explananation."""
 
+        # For scaling 1000HU to 1CT, we have (relevant sinomax) ~ IMG_SIDE_LENGTH
+        pmax = parameters.IMG_SIDE_LENGTH
 
+        # further scale parameter
+        scale = 50.0
+
+        # scaling of noise deviation parameter
+        alfa = 0.5
+
+        # base_intensity in logarithm
+        lnI0 = 10 * np.log(5)
+
+        # deviation of noise
+        sigma_I0 = alfa * np.exp(lnI0 - 1.0 / scale * pmax)
+
+        Inoise = np.random.normal(loc=0.0, scale=sigma_I0, size=np.shape(sino))
+        lnI = lnI0 - 1.0 / scale * sino
+        I = np.exp(lnI)
+        I_added_noise = I + sigma_I0
+
+        # some elements might be too low
+        too_low = I_added_noise < I / 2.0
+        I_added_noise[too_low] = I[too_low]
+
+        lnI_added_noise = np.log(I_added_noise)
+        sino_added_noise = scale * (lnI0 - lnI_added_noise)
+
+        return sino_added_noise

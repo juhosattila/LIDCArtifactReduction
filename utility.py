@@ -2,6 +2,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def show_grey(img_or_imgs):
     temp = np.asarray(img_or_imgs)
     shape = np.shape(temp)
@@ -13,4 +14,5 @@ def show_grey(img_or_imgs):
 
     for img in temp:
         plt.imshow(img, cmap=plt.cm.Greys_r)
+        #plt.imshow(img, cmap=plt.get_cmap('Greys'))
         plt.show()
