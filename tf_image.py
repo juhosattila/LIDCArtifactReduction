@@ -139,3 +139,45 @@ def scale_HU2Radio(imgs: TensorLike, intercepts, slopes):
     img_min = tf.constant([0.], dtype=tf.float32)
     img_max = tf.constant([1000.], dtype=tf.float32)
     return (zeroed_out_tf - img_min) / (img_max - img_min)
+
+
+
+
+def total_variation_norm(imgs : List[TensorLike]):
+    """
+    :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
+    :return:
+    """
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([[tf.shape(imgs_tf)[:3]], 1], axis=0))
+
+    diff_x = imgs4D[:,:,1:] - imgs4D[:,:,:-1]
+    diff_y = imgs4D[:,1:] - imgs4D[:,:-1]
+
+    total_variation = tf.sqrt(tf.square(diff_x) + tf.square(diff_y))
+    tv_norm = tf.reduce_sum(total_variation,axis=[1,2,3])
+    return tv_norm
+
+
+
+def reweighted_total_variation_norm(imgs : List[TensorLike], delta : float):
+    """Get reweighted total variation norm of imgs.
+
+    Args:
+        imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
+        delta: positive float
+
+    Returns:
+        1D tensor of reweighted total variation norms.
+    """
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([[tf.shape(imgs_tf)[:3]], 1], axis=0))
+
+    diff_x = imgs4D[:,:,1:] - imgs4D[:,:,:-1]
+    diff_y = imgs4D[:,1:] - imgs4D[:,:-1]
+
+    total_variation = tf.sqrt(tf.square(diff_x) + tf.square(diff_y))
+    reweighted_tv = total_variation / (total_variation + delta)
+
+    reweighted_tv_norm = tf.reduce_sum(reweighted_tv,axis=[1,2,3])
+    return reweighted_tv_norm

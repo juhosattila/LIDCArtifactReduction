@@ -93,6 +93,10 @@ class LIDCDataIterator(KerasImgIterator):
         self._add_noise = add_noise
         self._array_stream = array_stream
         self._test_mode = test_mode
+
+        # Testing
+        self.analysed = False
+
         super().__init__(len(arrnames), batch_size, shuffle=shuffle, seed=None)
 
     def _get_batches_of_transformed_samples(self, index_array):
@@ -149,7 +153,7 @@ class LIDCDataIterator(KerasImgIterator):
         scale = 50.0
 
         # scaling of noise deviation parameter
-        alfa = 0.5
+        alfa = 0.3
 
         # base_intensity in logarithm
         lnI0 = 10 * np.log(5)
@@ -157,16 +161,28 @@ class LIDCDataIterator(KerasImgIterator):
         # deviation of noise
         sigma_I0 = alfa * np.exp(lnI0 - 1.0 / scale * pmax)
 
-        Inoise = np.random.normal(loc=0.0, scale=sigma_I0, size=np.shape(sino))
+        I_normal_noise = np.random.normal(loc=0.0, scale=sigma_I0, size=np.shape(sino))
         lnI = lnI0 - 1.0 / scale * sino
-        I = np.exp(lnI)
-        I_added_noise = I + sigma_I0
+        I_no_noise = np.exp(lnI)
+        I_added_noise = I_no_noise + I_normal_noise
 
         # some elements might be too low
-        too_low = I_added_noise < I / 2.0
-        I_added_noise[too_low] = I[too_low]
+        too_low = I_added_noise < I_no_noise / 2.0
+        I_added_noise[too_low] = I_no_noise[too_low]
 
-        lnI_added_noise = np.log(I_added_noise)
-        sino_added_noise = scale * (lnI0 - lnI_added_noise)
+        I_Poisson = np.random.poisson(I_added_noise)
+
+        lnI_added_noise_and_Poisson = np.log(I_Poisson)
+        sino_added_noise = scale * (lnI0 - lnI_added_noise_and_Poisson)
+
+
+        # Testing
+        if self._test_mode and not self.analysed:
+            self.analysed = True
+            import utility
+            utility.analyse(I_no_noise, "I no noise")
+            utility.analyse(I_added_noise, "I normal noise")
+            utility.analyse(I_Poisson, "I Poisson")
+
 
         return sino_added_noise

@@ -48,10 +48,10 @@ class ParallelRadonTransform:
                 self._angles
             )
 
-    def __call__(self, img_or_imgs: List[TensorLike]):
-        return self.apply(img_or_imgs)
+    def __call__(self, imgs: TensorLike):
+        return self.apply(imgs)
 
-    def apply(self, imgs: List[TensorLike]):
+    def apply(self, imgs: TensorLike):
         """
         Args:
             imgs: List of Tensors in NHW or NHWC mode. Remember that H=W. C should be 1
@@ -59,7 +59,8 @@ class ParallelRadonTransform:
         Raises:
             InvalidArgumentError: if H =/= W
         """
-        imgs4D = tf.reshape(imgs, shape=tf.concat([[tf.shape(imgs)[0]], self._input_shape_with_channel], axis=0))
+        imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+        imgs4D = tf.reshape(imgs_tf, shape=tf.concat([[tf.shape(imgs_tf)[0]], self._input_shape_with_channel], axis=0))
 
         apply_one_projection = lambda params: tf.reduce_sum \
             (
