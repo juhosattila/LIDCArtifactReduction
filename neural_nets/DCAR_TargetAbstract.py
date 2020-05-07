@@ -3,6 +3,7 @@ from abc import abstractmethod
 
 from tensorflow.keras.layers import Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
+from tensorflow.keras import regularizers
 
 import parameters
 from neural_nets.interfaces import DCAR_TargetInterface
@@ -24,6 +25,7 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         self._dropout_layers: List[Dropout] = []
         self._has_activation_after_upsampling = has_activation_after_upsampling
         self._conv_layer_initalizer = 'he_normal'
+        self._conv_layer_regualizer = regularizers.l2(1e-4)
 
         self._model, self._input_layer, self._output_layer = self._build_model()
 
@@ -37,7 +39,8 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
 
     def _conv_k3_activation(self, filters: int):
         return Conv2D(filters=filters, kernel_size=(3, 3), padding='same',
-                      activation='relu', kernel_initializer=self._conv_layer_initalizer)
+                      activation='relu', kernel_initializer=self._conv_layer_initalizer,
+                      kernel_regularizer=self._conv_layer_regualizer)
 
     def _possible_batch_norm(self):
         if self._has_batch_norm:
@@ -67,7 +70,8 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         upsampling = UpSampling2D(size=(2, 2), interpolation='nearest')
         activation = 'relu' if self._has_activation_after_upsampling else 'linear'
         conv = Conv2D(filters=filters, kernel_size=(2, 2), padding='same',
-                      activation=activation, kernel_initializer=self._conv_layer_initalizer)
+                      activation=activation, kernel_initializer=self._conv_layer_initalizer,
+                      kernel_regularizer=self._conv_layer_regualizer)
         func = lambda x: conv(upsampling(x))
         return func
 

@@ -63,7 +63,8 @@ class DCAR_UNet_ManyBatchNorms(DCAR_TargetAbstract):
         u0 = self._conv_k3_activation_possible_batchnorm(64)(u0)
 
         diff_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
-                            kernel_initializer=self._conv_layer_initalizer)(u0)
+                            kernel_initializer=self._conv_layer_initalizer,
+                            kernel_regularizer=self._conv_layer_regualizer)(u0)
 
         output_layer = Add()([input_layer, diff_layer])
 
