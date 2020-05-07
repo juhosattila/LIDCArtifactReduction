@@ -1,5 +1,9 @@
+# Radon geometry
 IMG_SIDE_LENGTH = 256
 NR_OF_SPARSE_ANGLES = 60
+
+# HU scaling
+HU_TO_CT_SCALING = 1000
 
 import platform, os
 if platform.system() == 'Windows':

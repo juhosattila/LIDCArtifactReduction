@@ -3,7 +3,7 @@ import numpy as np
 import parameters
 from dicom_preprocess import DicomLoader
 
-from Radon_transformation import RadonParams
+from radon_transformation import RadonParams
 from offline_transformation import ResizeRescaleRadonOfflineTransformation
 from array_streams import RecSinoArrayStream
 

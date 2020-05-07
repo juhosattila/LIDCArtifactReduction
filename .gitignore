@@ -1,15 +1,15 @@
 *
 
+# Folders count.
+!**/
+
 # Relevant python files.
 !*.py
 test_ground.py
 sample_dicom_preprocess.py
 
 # Model plots
-!model_plots/
 !model_plots/*
 
 # Pycharm project settings
-!.idea/
-!.idea/runConfigurations/
 !.idea/runConfigurations/*

@@ -37,7 +37,7 @@ class LIDCDataGenerator:
             # valid_arrnames, test_arrnames = train_test_split(valid_test_arrnames,
             #     train_size=validation_split / validation_test_split, shuffle=True)
 
-        else: #mode == 'patient'
+        else:  # mode == 'patient'
             patient_dirs = self._array_stream.get_directory_names()
 
             train_directories, valid_test_directories = train_test_split(patient_dirs,
@@ -149,14 +149,18 @@ class LIDCDataIterator(KerasImgIterator):
         # For scaling 1000HU to 1CT, we have (relevant sinomax) ~ IMG_SIDE_LENGTH
         pmax = parameters.IMG_SIDE_LENGTH
 
+
+        # base_intensity in logarithm. This definies sum scaling.
+        # These should changed together.
+        lnI0 = 10 * np.log(5)
+        sum_scaling = 5.0
+
         # further scale parameter
-        scale = 50.0
+        scale = parameters.HU_TO_CT_SCALING / 1000.0 * parameters.IMG_SIDE_LENGTH / sum_scaling
 
         # scaling of noise deviation parameter
         alfa = 0.3
 
-        # base_intensity in logarithm
-        lnI0 = 10 * np.log(5)
 
         # deviation of noise
         sigma_I0 = alfa * np.exp(lnI0 - 1.0 / scale * pmax)
@@ -175,7 +179,6 @@ class LIDCDataIterator(KerasImgIterator):
         lnI_added_noise_and_Poisson = np.log(I_Poisson)
         sino_added_noise = scale * (lnI0 - lnI_added_noise_and_Poisson)
 
-
         # Testing
         if self._test_mode and not self.analysed:
             self.analysed = True
@@ -183,6 +186,5 @@ class LIDCDataIterator(KerasImgIterator):
             utility.analyse(I_no_noise, "I no noise")
             utility.analyse(I_added_noise, "I normal noise")
             utility.analyse(I_Poisson, "I Poisson")
-
 
         return sino_added_noise

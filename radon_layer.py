@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
-from Radon_transformation import ParallelRadonTransform, RadonParams
+from radon_transformation import ParallelRadonTransform, RadonParams
 
 
 class RadonLayer(Layer):

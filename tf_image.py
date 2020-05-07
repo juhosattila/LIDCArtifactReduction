@@ -5,6 +5,8 @@ from tensorflow_addons.utils.types import TensorLike
 import tensorflow as tf
 import tensorflow_addons as tfa
 
+import parameters
+
 
 def _get_scale_angle_translate_centre_matrix(scale, angle, translate, centre):
     """Creates a 2D transformation in homogenoues coordinates based on the formula:
@@ -137,30 +139,33 @@ def scale_HU2Radio(imgs: TensorLike, intercepts, slopes):
     zeroed_out_tf = tf.where(rescaled_tf >= 0, rescaled_tf, tf.zeros_like(rescaled_tf))
 
     img_min = tf.constant([0.], dtype=tf.float32)
-    img_max = tf.constant([1000.], dtype=tf.float32)
+    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
     return (zeroed_out_tf - img_min) / (img_max - img_min)
 
 
+def total_variation_op(imgs: TensorLike):
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
+    diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
+    diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
+    total_variation = tf.sqrt(tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
+    return total_variation
 
 
-def total_variation_norm(imgs : List[TensorLike]):
+def total_variation_norm(imgs: TensorLike):
     """
     :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
-    :return:
     """
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([[tf.shape(imgs_tf)[:3]], 1], axis=0))
+    total_variation = total_variation_op(imgs)
+    tv_norm = tf.reduce_sum(total_variation,axis=[1, 2, 3])
 
-    diff_x = imgs4D[:,:,1:] - imgs4D[:,:,:-1]
-    diff_y = imgs4D[:,1:] - imgs4D[:,:-1]
+    # # TODO: delete
+    # return tv_norm, total_variation
 
-    total_variation = tf.sqrt(tf.square(diff_x) + tf.square(diff_y))
-    tv_norm = tf.reduce_sum(total_variation,axis=[1,2,3])
     return tv_norm
 
 
-
-def reweighted_total_variation_norm(imgs : List[TensorLike], delta : float):
+def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     """Get reweighted total variation norm of imgs.
 
     Args:
@@ -170,14 +175,29 @@ def reweighted_total_variation_norm(imgs : List[TensorLike], delta : float):
     Returns:
         1D tensor of reweighted total variation norms.
     """
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([[tf.shape(imgs_tf)[:3]], 1], axis=0))
-
-    diff_x = imgs4D[:,:,1:] - imgs4D[:,:,:-1]
-    diff_y = imgs4D[:,1:] - imgs4D[:,:-1]
-
-    total_variation = tf.sqrt(tf.square(diff_x) + tf.square(diff_y))
+    total_variation = total_variation_op(imgs)
     reweighted_tv = total_variation / (total_variation + delta)
 
-    reweighted_tv_norm = tf.reduce_sum(reweighted_tv,axis=[1,2,3])
+    reweighted_tv_norm = tf.reduce_sum(reweighted_tv,axis=[1, 2, 3])
+
+    # # TODO: delete
+    # return reweighted_tv_norm, reweighted_tv
+
     return reweighted_tv_norm
+
+
+def sparsity_operator(imgs: TensorLike, eps: float):
+    return tf.reduce_sum(tf.math.log(imgs + eps))
+
+
+def sparse_total_variation_objective_function(imgs: TensorLike, eps: float):
+    total_variation = total_variation_op(imgs)
+    return sparsity_operator(total_variation, eps)
+
+
+class SparseTotalVariationObjectiveFunction:
+    def __init__(self, eps: float):
+        self.eps = eps
+
+    def __call__(self, imgs):
+        return sparse_total_variation_objective_function(imgs, self.eps)

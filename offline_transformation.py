@@ -3,7 +3,7 @@ import tensorflow as tf
 
 import parameters
 from tf_image import scale_HU2Radio
-from Radon_transformation import ParallelRadonTransform, RadonParams
+from radon_transformation import ParallelRadonTransform, RadonParams
 
 
 class DicomOfflineTransformation:
