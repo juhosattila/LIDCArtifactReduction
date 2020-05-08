@@ -1,18 +1,11 @@
 import numpy as np
-from typing import List
 
 import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow_addons.utils.types import TensorLike
 
-from tf_image import get_rotate_translate_resampling_params
-
-
-class RadonParams:
-    def __init__(self, angles: np.ndarray, is_degree=True, projection_width: int = None):
-        self.angles = angles
-        self.is_degree = is_degree
-        self.projection_width = projection_width
+from LIDCArtifactReduction.radon_params import RadonParams
+from LIDCArtifactReduction.tf_image import get_rotate_translate_resampling_params
 
 
 class ParallelRadonTransform:

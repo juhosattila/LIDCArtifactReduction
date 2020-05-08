@@ -1,11 +1,11 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from skimage.transform import iradon, iradon_sart
+from skimage.transform import iradon
 
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 
-import parameters
-from array_streams import RecSinoArrayStream
+from LIDCArtifactReduction import parameters, utility
+from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 
 class LIDCDataGenerator:
     """Custom generator class for LIDC data.
@@ -182,7 +182,6 @@ class LIDCDataIterator(KerasImgIterator):
         # Testing
         if self._test_mode and not self.analysed:
             self.analysed = True
-            import utility
             utility.analyse(I_no_noise, "I no noise")
             utility.analyse(I_added_noise, "I normal noise")
             utility.analyse(I_Poisson, "I Poisson")

@@ -5,8 +5,8 @@ from tensorflow.keras.layers import Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
 from tensorflow.keras import regularizers
 
-import parameters
-from neural_nets.interfaces import DCAR_TargetInterface
+from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction.neural_nets import DCAR_TargetInterface
 
 
 class DCAR_TargetAbstract(DCAR_TargetInterface):

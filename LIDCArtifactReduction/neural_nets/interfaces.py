@@ -1,19 +1,22 @@
 import os
+from tensorflow.keras import Model
 from tensorflow.keras.utils import plot_model
 from abc import abstractmethod
+
+from LIDCArtifactReduction import parameters
 
 
 class ModelInterface:
     object_counter = {}
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         valid_name = name
         if valid_name is None:
             class_name = type(self).__name__
             ModelInterface.object_counter[class_name] = ModelInterface.object_counter.get(class_name, 0) + 1
             valid_name = class_name + '_' + str(ModelInterface.object_counter[class_name])
         self._name = valid_name
-        self._model = None
+        self._model : Model = None
 
     @property
     def name(self):
@@ -23,11 +26,11 @@ class ModelInterface:
         self._model.summary()
 
     def plot_model(self, to_file=None, show_shapes=True):
-        dir = 'model_plots'
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        direc = parameters.MODEL_PLOTS_DIRECTORY
+        if not os.path.exists(direc):
+            os.mkdir(direc)
         valid_to_file = to_file if to_file is not None else (self.name + '.png')
-        final_to_file = os.path.join(dir, valid_to_file)
+        final_to_file = os.path.join(direc, valid_to_file)
         plot_model(self._model, final_to_file, show_shapes)
 
     @abstractmethod
@@ -37,6 +40,12 @@ class ModelInterface:
     @abstractmethod
     def set_training(self, training : bool):
         pass
+
+    def save(self):
+        file = os.path.join(parameters.MODEL_DIRECTORY, self._name)
+
+        # If format='h5' is used, losses and custom objects need to be handled separately.
+        self._model.save(file, save_format='tf')
 
 
 class DCAR_TargetInterface(ModelInterface):

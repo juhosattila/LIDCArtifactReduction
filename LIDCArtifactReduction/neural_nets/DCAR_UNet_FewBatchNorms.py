@@ -1,4 +1,4 @@
-from neural_nets.DCAR_TargetAbstract import DCAR_TargetAbstract
+from LIDCArtifactReduction.neural_nets import DCAR_TargetAbstract
 
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, \

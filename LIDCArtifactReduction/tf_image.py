@@ -1,11 +1,9 @@
-import numpy as np
-from typing import List
 from tensorflow_addons.utils.types import TensorLike
 
 import tensorflow as tf
 import tensorflow_addons as tfa
 
-import parameters
+from LIDCArtifactReduction import parameters
 
 
 def _get_scale_angle_translate_centre_matrix(scale, angle, translate, centre):

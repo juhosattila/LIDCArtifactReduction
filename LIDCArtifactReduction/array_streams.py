@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 
-import parameters
+from LIDCArtifactReduction import parameters
 
 
 class ArrayStream:

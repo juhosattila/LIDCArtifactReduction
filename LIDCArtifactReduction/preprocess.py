@@ -1,11 +1,11 @@
 import numpy as np
 
-import parameters
-from dicom_preprocess import DicomLoader
+from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction.dicom_preprocess import DicomLoader
 
-from radon_transformation import RadonParams
-from offline_transformation import ResizeRescaleRadonOfflineTransformation
-from array_streams import RecSinoArrayStream
+from LIDCArtifactReduction.radon_params import RadonParams
+from LIDCArtifactReduction.offline_transformation import ResizeRescaleRadonOfflineTransformation
+from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 
 
 def run(dl: DicomLoader, dir):

@@ -1,9 +1,8 @@
-import numpy as np
 import tensorflow as tf
 
-import parameters
-from tf_image import scale_HU2Radio
-from radon_transformation import ParallelRadonTransform, RadonParams
+from LIDCArtifactReduction.tf_image import scale_HU2Radio
+from LIDCArtifactReduction.radon_transformation import ParallelRadonTransform
+from LIDCArtifactReduction.radon_params import RadonParams
 
 
 class DicomOfflineTransformation:

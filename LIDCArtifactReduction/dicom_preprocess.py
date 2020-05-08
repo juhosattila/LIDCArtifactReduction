@@ -1,10 +1,10 @@
-from typing import List, Union
+from typing import List
 import numpy as np
 
 import pylidc as pl
 
-from offline_transformation import DicomOfflineTransformation
-from array_streams import ArrayStream
+from LIDCArtifactReduction.offline_transformation import DicomOfflineTransformation
+from LIDCArtifactReduction.array_streams import ArrayStream
 
 
 class ScanWrapper:

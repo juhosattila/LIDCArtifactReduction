@@ -3,24 +3,23 @@ from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 
-import parameters
-from tf_image import SparseTotalVariationObjectiveFunction
-from neural_nets.interfaces import ModelInterface, DCAR_TargetInterface
-from neural_nets.DCAR_UNet_FewBatchNorms import DCAR_UNet_FewBatchNorms
+from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
+from LIDCArtifactReduction.neural_nets import ModelInterface, DCAR_TargetInterface
 
-from radon_layer import RadonLayer, RadonParams
+from LIDCArtifactReduction.radon_layer import RadonLayer
+from LIDCArtifactReduction.radon_params import RadonParams
 
 
 class DCAR_TrainingNetwork(ModelInterface):
     def __init__(self, radon_params: RadonParams,
-                 target_model: DCAR_TargetInterface = DCAR_UNet_FewBatchNorms(), name=None):
+                 target_model: DCAR_TargetInterface, name=None):
         super().__init__(name)
         self._target_model = target_model
         self._input_shape = target_model.input_shape
 
         self._radon_params = radon_params
 
-        self._model: Model = None
         self._input_layer = None
         self._expected_output_layer = None
         self._expected_Radon_layer = None
@@ -32,7 +31,10 @@ class DCAR_TrainingNetwork(ModelInterface):
         target_output_layer = self._target_model.output_layer
 
         expected_output_layer = target_output_layer
+
+        # TODO: set the one that is needed
         expected_Radon_layer = RadonLayer(self._radon_params)(expected_output_layer)
+        #expected_Radon_layer = expected_output_layer
 
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)
@@ -47,7 +49,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         return self._target_model
 
     def compile(self, adam_lr=1e-3):
-        # TODO: metrics, optimizer
+        # TODO: metrics
         # TODO schedule learning decay
 
         # change based on projection values. This goes for 256

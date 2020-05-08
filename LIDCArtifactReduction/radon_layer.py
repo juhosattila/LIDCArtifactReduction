@@ -1,9 +1,9 @@
 import numpy as np
 
-import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
-from radon_transformation import ParallelRadonTransform, RadonParams
+from LIDCArtifactReduction.radon_transformation import ParallelRadonTransform
+from LIDCArtifactReduction.radon_params import RadonParams
 
 
 class RadonLayer(Layer):
@@ -44,10 +44,14 @@ class RadonLayer(Layer):
 
     # TODO: implement
     def get_config(self):
-        raise NotImplementedError(f"get_config for {self.__class__.name} was not implemented.")
-        # config = super().get_config()
-        # config.update({'theta': self.theta})
-        # return config
+        #raise NotImplementedError(f"get_config for {self.__class__.name} was not implemented.")
+        config = super().get_config()
+        config.update({'angles_or_params': self._radon_params.toJson()})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls()
 
     def call(self, inputs, **kwargs):
         return self._radon_transformation.apply(inputs)
