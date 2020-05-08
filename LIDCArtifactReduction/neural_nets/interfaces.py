@@ -47,6 +47,15 @@ class ModelInterface:
         # If format='h5' is used, losses and custom objects need to be handled separately.
         self._model.save(file, save_format='tf')
 
+    def save_weights(self):
+        file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
+        self._model.save_weights(file + '.h5')
+
+    def load_weights(self, name=None):
+        valid_name = name if name is not None else self._name
+        file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, valid_name)
+        self._model.load_weights(file + '.h5')
+
 
 class DCAR_TargetInterface(ModelInterface):
     @property

@@ -7,6 +7,7 @@ from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 from LIDCArtifactReduction import parameters, utility
 from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 
+
 class LIDCDataGenerator:
     """Custom generator class for LIDC data.
 

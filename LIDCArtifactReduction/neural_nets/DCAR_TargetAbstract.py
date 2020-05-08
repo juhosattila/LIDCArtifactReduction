@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Conv2D, \
 from tensorflow.keras import regularizers
 
 from LIDCArtifactReduction import parameters
-from LIDCArtifactReduction.neural_nets import DCAR_TargetInterface
+from LIDCArtifactReduction.neural_nets.interfaces import DCAR_TargetInterface
 
 
 class DCAR_TargetAbstract(DCAR_TargetInterface):

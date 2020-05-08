@@ -1,11 +1,14 @@
 import numpy as np
 
+import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
+import LIDCArtifactReduction
 from LIDCArtifactReduction.radon_transformation import ParallelRadonTransform
 from LIDCArtifactReduction.radon_params import RadonParams
 
 
+@tf.keras.utils.register_keras_serializable(LIDCArtifactReduction.__name__)
 class RadonLayer(Layer):
     def __init__(self, angles_or_params: np.ndarray or RadonParams,
                  is_degree=True, projection_width: int = None,
@@ -42,16 +45,17 @@ class RadonLayer(Layer):
         if self._radon_params.projection_width is None:
             self._radon_params.projection_width = self._img_side_length
 
-    # TODO: implement
     def get_config(self):
-        #raise NotImplementedError(f"get_config for {self.__class__.name} was not implemented.")
         config = super().get_config()
-        config.update({'angles_or_params': self._radon_params.toJson()})
+        config.update({'params': self._radon_params.toJson()})
         return config
 
+    # TODO: not tested, if it works
     @classmethod
     def from_config(cls, config):
-        return cls()
+        radon_params = RadonParams.fromJson(config['params'])
+        print("Suddenly from_config works.")
+        return cls(angles_or_params=radon_params, name=config['name'])
 
     def call(self, inputs, **kwargs):
         return self._radon_transformation.apply(inputs)
