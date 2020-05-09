@@ -26,8 +26,8 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         scaled_data_batch, data_sino_batch = self._tf_transformation(data_batch, intercepts, slopes)
         return list(zip(scaled_data_batch, data_sino_batch))
 
-    # TODO : comment out directive
-    # @tf.function
+    # Toggle directive depending on environment.
+    @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
         data_tf = tf.convert_to_tensor(data_batch, dtype=tf.float32)
         data_tf = tf.expand_dims(data_tf, axis=-1)

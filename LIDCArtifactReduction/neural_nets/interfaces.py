@@ -56,6 +56,10 @@ class ModelInterface:
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, valid_name)
         self._model.load_weights(file + '.h5')
 
+    @abstractmethod
+    def set_training(self, training: bool):
+        pass
+
 
 class DCAR_TargetInterface(ModelInterface):
     @property
@@ -71,8 +75,4 @@ class DCAR_TargetInterface(ModelInterface):
     @property
     @abstractmethod
     def output_layer(self):
-        pass
-
-    @abstractmethod
-    def set_training(self, training: bool):
         pass

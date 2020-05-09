@@ -1,3 +1,5 @@
+import platform, os
+
 # Radon geometry
 IMG_SIDE_LENGTH = 256
 NR_OF_SPARSE_ANGLES = 60
@@ -5,10 +7,9 @@ NR_OF_SPARSE_ANGLES = 60
 # HU scaling
 HU_TO_CT_SCALING = 1000
 
-import platform, os
 if platform.system() == 'Windows':
     PROJECT_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction"
-else: # 'Linux'
+else:  # 'Linux' # TODO: rethink it, should go hard disk
     PROJECT_DIRECTORY = '~/LIDCArtifactReduction/'
 
 DATA_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'images')
@@ -19,7 +20,7 @@ MODEL_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'models')
 MODEL_WEIGHTS_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'model_weights')
 
 
-#-------------------------------------------------------#
+# -------------------------------------------------------#
 if not os.path.exists(MODEL_PLOTS_DIRECTORY):
     os.mkdir(MODEL_PLOTS_DIRECTORY)
 if not os.path.exists(MODEL_DIRECTORY):

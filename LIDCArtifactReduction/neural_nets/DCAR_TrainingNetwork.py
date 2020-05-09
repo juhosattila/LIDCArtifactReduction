@@ -36,10 +36,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         target_output_layer = self._target_model.output_layer
 
         expected_output_layer = target_output_layer
-
-        # TODO: set the one that is needed
         expected_Radon_layer = RadonLayer(self._radon_params)(expected_output_layer)
-        #expected_Radon_layer = expected_output_layer
 
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)
@@ -70,9 +67,10 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator: LIDCDataIterator, validation_iterator: LIDCDataIterator,
             epochs: int,
-            verbose=1, adam_lr = 1e-3, initial_epoch=0):
-        self.compile(adam_lr)
+            verbose=1, adam_lr=1e-3, initial_epoch=0):
 
+        self.set_training(training=True)
+        self.compile(adam_lr)
 
         # TODO schedule learning decay, scheduler or manually
 

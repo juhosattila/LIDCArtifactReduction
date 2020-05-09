@@ -4,6 +4,8 @@ from abc import abstractmethod
 from tensorflow.keras.layers import Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
 from tensorflow.keras import regularizers
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import MeanSquaredError
 
 from LIDCArtifactReduction import parameters
 from LIDCArtifactReduction.neural_nets.interfaces import DCAR_TargetInterface
@@ -29,7 +31,6 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
 
         self._model, self._input_layer, self._output_layer = self._build_model()
 
-    # TODO: setting training needs compiling
     def _set_training(self, training: bool):
         """Change needs recompiling."""
         for batch_norm_layer in self._batch_norm_layers:
@@ -94,7 +95,7 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
     def set_training(self, training : bool):
         self._set_training(training)
 
-    # TODO: implement
+    # Used for sake being able to compile after setting training mode.
     def compile(self):
-        raise NotImplementedError()
-        pass
+        self._model.compile(optimizer=Adam(1e-3),
+                            loss=MeanSquaredError())
