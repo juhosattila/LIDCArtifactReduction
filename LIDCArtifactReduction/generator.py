@@ -6,6 +6,7 @@ from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 
 from LIDCArtifactReduction import parameters, utility
 from LIDCArtifactReduction.array_streams import RecSinoArrayStream
+from LIDCArtifactReduction.neural_nets.DCAR_TrainingNetwork import DCAR_TrainingNetwork
 
 
 class LIDCDataGenerator:
@@ -119,8 +120,9 @@ class LIDCDataIterator(KerasImgIterator):
         return self._output_format_manager(bad_recs, good_recs, good_sinos)
 
     def _output_format_manager(self, bad_recs, good_recs, good_sinos):
-        # TODO: szotarszeruen berendez
-        return bad_recs, [good_recs, good_sinos]
+        return ({DCAR_TrainingNetwork.input_name : bad_recs},
+                {DCAR_TrainingNetwork.reconstruction_output_name : good_recs,
+                 DCAR_TrainingNetwork.sino_output_name : good_sinos})
 
     def _transform(self, sino):
         # cut 3rd channel dimension, which has C=1

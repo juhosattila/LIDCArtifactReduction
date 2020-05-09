@@ -76,3 +76,6 @@ class DCAR_TargetInterface(ModelInterface):
     @abstractmethod
     def output_layer(self):
         pass
+
+    input_name = 'input_layer'
+    reconstruction_output_name = 'reconstruction_output_layer'

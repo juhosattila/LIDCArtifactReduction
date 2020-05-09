@@ -9,7 +9,7 @@ HU_TO_CT_SCALING = 1000
 
 if platform.system() == 'Windows':
     PROJECT_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction"
-else:  # 'Linux' # TODO: rethink it, should go hard disk
+else:  # 'Linux' # TODO: rethink it, should go to hard disk
     PROJECT_DIRECTORY = '~/LIDCArtifactReduction/'
 
 DATA_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'images')

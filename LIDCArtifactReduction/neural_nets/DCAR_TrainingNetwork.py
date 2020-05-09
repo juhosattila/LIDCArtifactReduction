@@ -31,12 +31,17 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         self._build_model()
 
+    sino_output_name = 'radon_layer'
+    input_name = DCAR_TargetInterface.input_name
+    reconstruction_output_name = DCAR_TargetInterface.reconstruction_output_name
+
     def _build_model(self):
         target_input_layer = self._target_model.input_layer
         target_output_layer = self._target_model.output_layer
 
         expected_output_layer = target_output_layer
-        expected_Radon_layer = RadonLayer(self._radon_params)(expected_output_layer)
+        expected_Radon_layer = RadonLayer(self._radon_params, name=DCAR_TrainingNetwork.sino_output_name)\
+                                (expected_output_layer)
 
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)
@@ -53,17 +58,26 @@ class DCAR_TrainingNetwork(ModelInterface):
     def compile(self, adam_lr=1e-3):
         # TODO: specify metrics
 
+        # Custom losses and metrics
         if not self._total_variation_loss_set:
             # change based on projection values. This goes for 256
             tot_var_loss_weight = 1e-2
             tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=5.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
-            self._model.add_loss( tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
+            self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
-        # TODO: szotarszeruen rendez loss-okat es metrikakat
+        losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
+                  DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
+        loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : 1.0,
+                        DCAR_TrainingNetwork.sino_output_name : 1.0 / parameters.NR_OF_SPARSE_ANGLES}
+
+        # TODO: continue
+        metrics = {}
+
         self._model.compile(optimizer=Adam(adam_lr),
-                            loss=[MeanSquaredError(), MeanSquaredError()],
-                            loss_weights=[1.0, 1.0 / parameters.NR_OF_SPARSE_ANGLES])
+                            loss=losses,
+                            loss_weights=loss_weights,
+                            metrics=metrics)
 
     def fit(self, train_iterator: LIDCDataIterator, validation_iterator: LIDCDataIterator,
             epochs: int,

@@ -1,7 +1,7 @@
 from typing import List
 from abc import abstractmethod
 
-from tensorflow.keras.layers import Conv2D, \
+from tensorflow.keras.layers import Input, Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
@@ -37,6 +37,9 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
             batch_norm_layer.training = training
         for dropout_layer in self._dropout_layers:
             dropout_layer.training = training
+
+    def _input(self):
+        return Input(self._input_shape + (1,), name=DCAR_TargetInterface.input_name)
 
     def _conv_k3_activation(self, filters: int):
         return Conv2D(filters=filters, kernel_size=(3, 3), padding='same',
