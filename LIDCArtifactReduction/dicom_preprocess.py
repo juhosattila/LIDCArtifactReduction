@@ -8,8 +8,9 @@ from LIDCArtifactReduction.array_streams import ArrayStream
 
 
 class ScanWrapper:
-    def __init__(self, scan: pl.Scan):
+    def __init__(self, scan: pl.Scan, ignored_edge_slice):
         self._scan = scan
+        self._ignored_edge_slice = ignored_edge_slice
 
         self._data_set = False
         self._volume = None
@@ -23,6 +24,10 @@ class ScanWrapper:
             return
 
         images = self._scan.load_all_dicom_images(verbose=verbose)
+
+        nr_images_ignored = np.math.floor(len(images) * self._ignored_edge_slice)
+        images = images[0: len(images)-nr_images_ignored]
+
         self._volume = np.stack([img.pixel_array for img in images], axis=0).astype(self._dtype)
         self._intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
         self._slopes = np.array([img.RescaleSlope for img in images]).astype(self._dtype)
@@ -53,9 +58,17 @@ class ScanWrapper:
 
 
 class DicomLoader():
-    def __init__(self, batch_size=10):
+    def __init__(self, batch_size=10, ignored_edge_slice=0.0):
+        """
+        Args:
+            ignored_edge_slice: percentage of slices ignored at the end of each volume
+        """
+        if ignored_edge_slice >= 0.5:
+            raise ValueError()
+
         self._batch_size = batch_size
         self._scan = pl.query(pl.Scan)
+        self._ignored_edge_slice = ignored_edge_slice
 
     @property
     def batch_size(self):
@@ -72,7 +85,7 @@ class DicomLoader():
 
     def __iter__(self):
         self._actual_element = 0
-        self._scanw_list = [ScanWrapper(scan) for scan in self._scan.all()]
+        self._scanw_list = [ScanWrapper(scan, self._ignored_edge_slice) for scan in self._scan.all()]
         return self
 
     def __next__(self) -> List[ScanWrapper]:
@@ -85,8 +98,8 @@ class DicomLoader():
         return relevant_scan_list
 
     def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
-                                    array_stream = ArrayStream.RecSinoInstance(),
-                                    mode = 'patient'):
+                                    array_stream=ArrayStream.RecSinoInstance(),
+                                    mode='patient'):
         """
         Args:
              mode: one of 'patient' or 'combined'
@@ -104,7 +117,7 @@ class DicomLoader():
                     i += 1
                     array_stream.save_arrays(filename, output_data)
 
-        else: # mode == 'patient'
+        else:  # mode == 'patient'
 
             for scanw_batch in self:
                 volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)

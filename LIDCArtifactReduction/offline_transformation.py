@@ -23,8 +23,12 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
                                                             angles_or_params=radon_params)
 
     def __call__(self, data_batch, intercepts, slopes):
-        scaled_data_batch, data_sino_batch = self._tf_transformation(data_batch, intercepts, slopes)
+        scaled_data_batch, data_sino_batch = self._transformation(data_batch, intercepts, slopes)
         return list(zip(scaled_data_batch, data_sino_batch))
+
+    def _transformation(self, data_batch, intercepts, slopes):
+        scaled_data, data_sino = self._tf_transformation(data_batch, intercepts, slopes)
+        return scaled_data.numpy(), data_sino.numpy()
 
     # Toggle directive depending on environment.
     @tf.function
@@ -34,5 +38,5 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         resized_data = tf.image.resize(data_tf, size=self._resize_target)
         scaled_data = scale_Gray2Radio(resized_data, intercepts, slopes)
         data_sino = self._radon_transformation(scaled_data)
-        return scaled_data.numpy(), data_sino.numpy()
+        return scaled_data, data_sino
 
