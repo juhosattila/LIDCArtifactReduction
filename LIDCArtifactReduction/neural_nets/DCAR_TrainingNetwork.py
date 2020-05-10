@@ -5,8 +5,9 @@ from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 
+from LIDCArtifactReduction import utility
 from LIDCArtifactReduction import parameters
 from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
 from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
@@ -86,7 +87,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int,
-            verbose=1, adam_lr=1e-3, initial_epoch=0):
+            verbose=2, adam_lr=1e-3, initial_epoch=0):
 
         self.set_training(training=True)
         self.compile(adam_lr)
@@ -98,12 +99,14 @@ class DCAR_TrainingNetwork(ModelInterface):
                                        save_weights_only=True, verbose=1)
         earlystopping = EarlyStopping(patience=5, verbose=1)
 
-        # Tensorboard
-        logdir = os.path.join(parameters.LOG_DIRECTORY,
-                              "fit", datetime.now().strftime("%Y%m%d-%H%M%S"))
-        tensorboard = TensorBoard(logdir=logdir, histogram_freq=1, write_graph=True)
+        # Tensorboard and logging
+        datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "fit", datetimenow)
+        tensorboard = TensorBoard(logdir=tensorboard_logdir, histogram_freq=1, write_graph=True)
+        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "fit", datetimenow)
+        csvlogger = CSVLogger(filename=txt_logdir)
 
-        callbacks = [checkpointer, earlystopping, tensorboard]
+        callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
 
         # Number of batches used.
         # Use entire dataset once.

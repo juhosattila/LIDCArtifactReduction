@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Union, Iterable, List
@@ -73,6 +74,12 @@ def analyse(arrs, names=None):
         for arr, name in zip(arrays, names):
             analyse_one(arr, name)
 
+
+def direc(*args):
+    direc_path = os.path.join(*args)
+    if not os.path.exists(direc_path):
+        os.makedirs(direc_path)
+    return direc_path
 
 
 # TODO: implement logging of fit data

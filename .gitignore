@@ -4,9 +4,7 @@
 !**/
 
 # Relevant python files.
-!*.py
-test_ground.py
-sample_dicom_preprocess.py
+!LIDCArtifactReduction/*.py
 
 # Model plots
 !model_plots/*

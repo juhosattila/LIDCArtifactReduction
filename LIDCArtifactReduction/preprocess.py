@@ -28,7 +28,7 @@ def test():
 
     dl = DicomLoader(batch_size=2).filter(patient_ids)
 
-    run(dl, parameters.TEST_DIRECTORY)
+    run(dl, parameters.TEST_DATA_DIRECTORY)
 
 if __name__ == "__main__":
     #main()
