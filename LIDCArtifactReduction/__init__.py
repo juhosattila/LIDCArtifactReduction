@@ -1,9 +1,11 @@
 import sys
 import tensorflow as tf
 import platform
-# Set resource limit of tensorflow on server
+# Purely dependent of server nhakni.
 if platform.system() == 'Linux':
-    sys.path.append("/home/juhosa/python-packages")
+    # Add my package folder.
+    sys.path.insert(1, "/home/juhosa/python-packages")
+    # Set resource limit of tensorflow on server
     gpus = tf.config.experimental.list_physical_devices('GPU')
     try:
         tf.config.experimental.set_virtual_device_configuration(gpus[0],
