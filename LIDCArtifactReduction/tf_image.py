@@ -108,7 +108,19 @@ def min_max_scale(img_or_imgs: TensorLike):
     return (img_or_imgs - min_ex) / diff_ex
 
 
-def scale_HU2Radio(imgs: TensorLike, intercepts, slopes):
+def scale_HU2Radio(imgs: TensorLike):
+    img_min = tf.constant([0.], dtype=tf.float32)
+    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
+    return (imgs - img_min) / (img_max - img_min)
+
+
+def scale_Radio2HU(imgs: TensorLike):
+    img_min = tf.constant([0.], dtype=tf.float32)
+    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
+    return imgs * (img_max - img_min) + img_min
+
+
+def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
     """Scale an absolute grey level image to linear attenuation coefficient space, based on intercepts and slopes.
 
     Air is considered to have level 0. Bone is considered to have value 1000.
@@ -136,9 +148,7 @@ def scale_HU2Radio(imgs: TensorLike, intercepts, slopes):
     # TODO: do it based on minimum, and not 0
     zeroed_out_tf = tf.where(rescaled_tf >= 0, rescaled_tf, tf.zeros_like(rescaled_tf))
 
-    img_min = tf.constant([0.], dtype=tf.float32)
-    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
-    return (zeroed_out_tf - img_min) / (img_max - img_min)
+    return scale_HU2Radio(zeroed_out_tf)
 
 
 def total_variation_op(imgs: TensorLike):

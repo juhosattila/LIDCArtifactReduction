@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from LIDCArtifactReduction.tf_image import scale_HU2Radio
+from LIDCArtifactReduction.tf_image import scale_Gray2Radio
 from LIDCArtifactReduction.radon_transformation import ParallelRadonTransform
 from LIDCArtifactReduction.radon_params import RadonParams
 
@@ -32,7 +32,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         data_tf = tf.convert_to_tensor(data_batch, dtype=tf.float32)
         data_tf = tf.expand_dims(data_tf, axis=-1)
         resized_data = tf.image.resize(data_tf, size=self._resize_target)
-        scaled_data = scale_HU2Radio(resized_data, intercepts, slopes)
+        scaled_data = scale_Gray2Radio(resized_data, intercepts, slopes)
         data_sino = self._radon_transformation(scaled_data)
         return scaled_data.numpy(), data_sino.numpy()
 

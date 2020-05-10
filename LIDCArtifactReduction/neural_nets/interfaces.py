@@ -43,7 +43,6 @@ class ModelInterface:
 
     def save(self):
         file = os.path.join(parameters.MODEL_DIRECTORY, self._name)
-
         # If format='h5' is used, losses and custom objects need to be handled separately.
         self._model.save(file, save_format='tf')
 
@@ -55,10 +54,6 @@ class ModelInterface:
         valid_name = name if name is not None else self._name
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, valid_name)
         self._model.load_weights(file + '.h5')
-
-    @abstractmethod
-    def set_training(self, training: bool):
-        pass
 
 
 class DCAR_TargetInterface(ModelInterface):

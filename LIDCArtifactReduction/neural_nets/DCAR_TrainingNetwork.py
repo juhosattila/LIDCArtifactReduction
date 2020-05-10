@@ -4,10 +4,11 @@ from datetime import datetime
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
+from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 
 from LIDCArtifactReduction import parameters
-from LIDCArtifactReduction.generator import LIDCDataIterator
+from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
 from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.interfaces import ModelInterface, DCAR_TargetInterface
 from LIDCArtifactReduction.radon_layer import RadonLayer
@@ -56,9 +57,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         return self._target_model
 
     def compile(self, adam_lr=1e-3):
-        # TODO: specify metrics
-
-        # Custom losses and metrics
+        # Losses
         if not self._total_variation_loss_set:
             # change based on projection values. This goes for 256
             tot_var_loss_weight = 1e-2
@@ -71,40 +70,43 @@ class DCAR_TrainingNetwork(ModelInterface):
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : 1.0,
                         DCAR_TrainingNetwork.sino_output_name : 1.0 / parameters.NR_OF_SPARSE_ANGLES}
 
-        # TODO: continue
-        metrics = {}
+        # Metrics
+        metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
+                        [RootMeanSquaredError(name='rmse_reconstruction'),
+                         HU_RMSE(name='rmse_HU_recontruction'),
+                         RadioSNR(name='SNR_reconstruction'),
+                         SSIM(name='ssim')],
+                    DCAR_TrainingNetwork.sino_output_name:
+                        [RootMeanSquaredError(name='rmse_radon_space')]}
 
         self._model.compile(optimizer=Adam(adam_lr),
                             loss=losses,
                             loss_weights=loss_weights,
                             metrics=metrics)
 
-    def fit(self, train_iterator: LIDCDataIterator, validation_iterator: LIDCDataIterator,
+    def fit(self, train_iterator, validation_iterator,
             epochs: int,
             verbose=1, adam_lr=1e-3, initial_epoch=0):
 
         self.set_training(training=True)
         self.compile(adam_lr)
 
-        # TODO schedule learning decay, scheduler or manually
-
-        # We are going to use early stopping and model saving-reloading mechanism.
+        # We are going to use early stopping and model saving mechanism.
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
         file = file + '.{epoch:02d}-{val_loss:.2f}.hdf5'
         checkpointer = ModelCheckpoint(filepath=file, save_best_only=True,
                                        save_weights_only=True, verbose=1)
-        earlystopping = EarlyStopping(patience=10, verbose=1)
+        earlystopping = EarlyStopping(patience=5, verbose=1)
 
         # Tensorboard
-        # TODO: supplement tensorboard with metrics and others
-        logdir = os.path.join(parameters.PROJECT_DIRECTORY,
-                              "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
+        logdir = os.path.join(parameters.LOG_DIRECTORY,
+                              "fit", datetime.now().strftime("%Y%m%d-%H%M%S"))
         tensorboard = TensorBoard(logdir=logdir, histogram_freq=1, write_graph=True)
 
         callbacks = [checkpointer, earlystopping, tensorboard]
 
         # Number of batches used.
-        # Use entire dataset once
+        # Use entire dataset once.
         steps_per_epoch: int = len(train_iterator)
         validation_steps: int = len(validation_iterator)
 

@@ -5,7 +5,7 @@ IMG_SIDE_LENGTH = 256
 NR_OF_SPARSE_ANGLES = 60
 
 # HU scaling
-HU_TO_CT_SCALING = 1000
+HU_TO_CT_SCALING = 1000.0
 
 if platform.system() == 'Windows':
     PROJECT_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction"
@@ -18,6 +18,8 @@ TEST_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'sample_images')
 MODEL_PLOTS_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'model_plots')
 MODEL_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'models')
 MODEL_WEIGHTS_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'model_weights')
+
+LOG_DIRECTORY = os.path.join(PROJECT_DIRECTORY, 'logs')
 
 
 # -------------------------------------------------------#
