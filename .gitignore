@@ -7,6 +7,7 @@
 !LIDCArtifactReduction/*.py
 !preprocess.py
 !train.py
+!test_preprocess.py
 
 # Model plots
 !model_plots/*
