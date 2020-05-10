@@ -6,6 +6,7 @@
 # Relevant python files.
 !LIDCArtifactReduction/*.py
 !preprocess.py
+!train.py
 
 # Model plots
 !model_plots/*
