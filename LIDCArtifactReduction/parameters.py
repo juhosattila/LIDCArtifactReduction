@@ -13,8 +13,8 @@ if platform.system() == 'Windows':
     PROJECT_DATA_DIRECTORY = direc(PROJECT_DIRECTORY, 'LIDCArtifactReduction_Data')
 
 else:  # 'Linux'
-    PROJECT_DIRECTORY = '~/LIDCArtifactReduction/'
-    PROJECT_DATA_DIRECTORY = '~/CI/LIDCArtifactReduction_Data'
+    PROJECT_DIRECTORY = '/home/juhosa/LIDCArtifactReduction/'
+    PROJECT_DATA_DIRECTORY = '/home/juhosa/CI/LIDCArtifactReduction_Data'
 
 DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-transformed')
 TEST_DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-sample-transformed')
