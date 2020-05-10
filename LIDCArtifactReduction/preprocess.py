@@ -8,13 +8,12 @@ from LIDCArtifactReduction.offline_transformation import ResizeRescaleRadonOffli
 from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 
 
-def run(dl: DicomLoader, dir):
+def run(dl: DicomLoader, direc):
     img_side_length = parameters.IMG_SIDE_LENGTH
     radon_params = RadonParams(angles=np.linspace(0.0, 180.0, parameters.NR_OF_SPARSE_ANGLES))
     offline_transformation = ResizeRescaleRadonOfflineTransformation(img_side_length, radon_params)
-    array_stream = RecSinoArrayStream(dir)
-    dl.run_offline_transformations(offline_transformation, array_stream,
-                                   mode='patient')
+    array_stream = RecSinoArrayStream(direc)
+    dl.run_offline_transformations(offline_transformation, array_stream, mode='patient')
 
 
 def main():
@@ -26,12 +25,6 @@ def test():
     patient_list = [1, 3, 5, 14]
     patient_ids = ["LIDC-IDRI-" + "{:04d}".format(id) for id in patient_list]
 
-    dl = DicomLoader(batch_size=2).filter(patient_ids)
+    dl = DicomLoader(batch_size=2, ignored_edge_slice=0.1).filter(patient_ids)
 
     run(dl, parameters.TEST_DATA_DIRECTORY)
-
-if __name__ == "__main__":
-    #main()
-    test()
-
-
