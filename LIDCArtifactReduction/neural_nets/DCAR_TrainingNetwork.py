@@ -62,7 +62,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         if not self._total_variation_loss_set:
             # change based on projection values. This goes for 256
             tot_var_loss_weight = 1e-3
-            tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
+            #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
+            tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=1.0)
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
