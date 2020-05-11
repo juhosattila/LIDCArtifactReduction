@@ -107,8 +107,8 @@ class LIDCDataIterator(KerasImgIterator):
         relevant_arr_names = [self._arrnames[idx] for idx in index_array]
         good_rec_sino_pairs = [self._array_stream.load_arrays(name)
                               for name in relevant_arr_names]
-        good_recs = [pair[0] for pair in good_rec_sino_pairs]
-        good_sinos = [pair[1] for pair in good_rec_sino_pairs]
+        good_recs = np.stack([pair[0] for pair in good_rec_sino_pairs], axis=0)
+        good_sinos = np.stack([pair[1] for pair in good_rec_sino_pairs], axis=0)
 
         if self._test_mode:
             all = [self._transform(good_sino) for good_sino in good_sinos]
@@ -116,13 +116,14 @@ class LIDCDataIterator(KerasImgIterator):
             bad_sinos = [a[1] for a in all]
             return bad_recs, [good_recs, good_sinos], bad_sinos
 
-        bad_recs = [self._transform(good_sino) for good_sino in good_sinos]
+        bad_recs = np.stack([self._transform(good_sino) for good_sino in good_sinos], axis=0)
         return self._output_format_manager(bad_recs, good_recs, good_sinos)
 
     def _output_format_manager(self, bad_recs, good_recs, good_sinos):
+        # TODO: if upgraded to TF 2.2 remove [None]
         return ({DCAR_TrainingNetwork.input_name : bad_recs},
                 {DCAR_TrainingNetwork.reconstruction_output_name : good_recs,
-                 DCAR_TrainingNetwork.sino_output_name : good_sinos})
+                 DCAR_TrainingNetwork.sino_output_name : good_sinos}, [None, None])
 
     def _transform(self, sino):
         # cut 3rd channel dimension, which has C=1

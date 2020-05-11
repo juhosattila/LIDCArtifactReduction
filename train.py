@@ -15,6 +15,6 @@ unet = DCAR_UNet_FewBatchNorms(name='DCAR_UNet_FewBatchNorms')
 training_network = DCAR_TrainingNetwork(radon_params, target_model=unet,
                                         name='DCAR_UNet_FewBatchNorms_Training')
 
-generator = LIDCDataGenerator(verbose=True)
+generator = LIDCDataGenerator(verbose=True, validation_split=0.25, test_split=0.25)
 training_network.fit(generator.train_iterator, generator.valid_iterator,
                      epochs=5, adam_lr=1e-3)
