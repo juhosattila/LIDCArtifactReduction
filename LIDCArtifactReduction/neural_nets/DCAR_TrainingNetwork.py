@@ -57,20 +57,19 @@ class DCAR_TrainingNetwork(ModelInterface):
     def target_model(self):
         return self._target_model
 
-    def compile(self, adam_lr=1e-3):
+    def compile(self, adam_lr=1e-3, sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
+                total_variation_eps=1.0, tot_var_loss_weight=1e-3):
         # Losses
         if not self._total_variation_loss_set:
-            # change based on projection values. This goes for 256
-            tot_var_loss_weight = 1e-3
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
-            tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=1.0)
+            tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
         losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
                   DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : 1.0,
-                        DCAR_TrainingNetwork.sino_output_name : 1.0 / parameters.NR_OF_SPARSE_ANGLES}
+                        DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
 
         # Metrics
         metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
@@ -88,16 +87,14 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int,
-            verbose=1, adam_lr=1e-3, initial_epoch=0):
-
-        self.set_training(training=True)
-        self.compile(adam_lr)
+            verbose=1, initial_epoch=0):
 
         # We are going to use early stopping and model saving mechanism.
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
         file = file + '.{epoch:02d}-{val_loss:.2f}.hdf5'
         checkpointer = ModelCheckpoint(filepath=file, save_best_only=True,
-                                       save_weights_only=True, verbose=1)
+                                       save_weights_only=True, verbose=1,
+                                       save_freq=100)
         earlystopping = EarlyStopping(patience=5, verbose=1)
 
         # Tensorboard and logging
