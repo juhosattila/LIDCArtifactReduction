@@ -7,7 +7,7 @@ from LIDCArtifactReduction.radon_params import RadonParams
 from LIDCArtifactReduction.offline_transformation import ResizeRescaleRadonOfflineTransformation
 
 
-patient_list = range(300, 1020, 1)
+patient_list = range(400, 1020, 1)
 patient_ids = ["LIDC-IDRI-" + "{:04d}".format(id) for id in patient_list]
 
 dl = DicomLoader(batch_size=7, ignored_edge_slice=0.1).filter(patient_ids)
