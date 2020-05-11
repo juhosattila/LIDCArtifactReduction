@@ -87,7 +87,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int,
-            verbose=2, adam_lr=1e-3, initial_epoch=0):
+            verbose=1, adam_lr=1e-3, initial_epoch=0):
 
         self.set_training(training=True)
         self.compile(adam_lr)
@@ -103,8 +103,9 @@ class DCAR_TrainingNetwork(ModelInterface):
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "fit", datetimenow)
         tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
-        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "fit", datetimenow)
-        csvlogger = CSVLogger(filename=txt_logdir)
+        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "fit")
+        txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
+        csvlogger = CSVLogger(filename=txt_filename)
 
         callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
 
