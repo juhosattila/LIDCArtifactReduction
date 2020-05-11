@@ -102,7 +102,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         # Tensorboard and logging
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "fit", datetimenow)
-        tensorboard = TensorBoard(logdir=tensorboard_logdir, histogram_freq=1, write_graph=True)
+        tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
         txt_logdir = utility.direc(parameters.CSV_LOGDIR, "fit", datetimenow)
         csvlogger = CSVLogger(filename=txt_logdir)
 
