@@ -20,5 +20,4 @@ training_network.compile(
     total_variation_eps=1.0, tot_var_loss_weight=5 * 1e-3)
 
 generator = LIDCDataGenerator(verbose=True, validation_split=0.25, test_split=0.25, batch_size=10)
-training_network.fit(generator.train_iterator, generator.valid_iterator,
-                     epochs=5, adam_lr=1e-3)
+training_network.fit(generator.train_iterator, generator.valid_iterator, epochs=5)
