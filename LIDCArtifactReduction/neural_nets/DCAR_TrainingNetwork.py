@@ -94,7 +94,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         file = file + '.{epoch:02d}-{val_loss:.2f}.hdf5'
         checkpointer = ModelCheckpoint(filepath=file, save_best_only=True,
                                        save_weights_only=True, verbose=1,
-                                       save_freq=100)
+                                       save_freq='epoch')
         earlystopping = EarlyStopping(patience=5, verbose=1)
 
         # Tensorboard and logging
