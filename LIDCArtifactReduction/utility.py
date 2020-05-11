@@ -93,7 +93,7 @@ class ProgressNumber:
 
     def update_add(self, i):
         self._actual += i
-        sys.stdout.wite("{:5d}".format(self._actual))
+        sys.stdout.write("{:5d}".format(self._actual))
         sys.stdout.flush()
         sys.stdout.write("\b" * 5)
 
