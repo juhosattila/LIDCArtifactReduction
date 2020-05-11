@@ -57,7 +57,7 @@ class DCAR_TrainingNetwork(ModelInterface):
     def target_model(self):
         return self._target_model
 
-    def compile(self, adam_lr=1e-3, sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
+    def compile(self, adam_lr=1e-3, reconstruction_output_weight = 1.0, sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
                 total_variation_eps=1.0, tot_var_loss_weight=1e-3):
         # Losses
         if not self._total_variation_loss_set:
@@ -68,7 +68,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
                   DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
-        loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : 1.0,
+        loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
                         DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
 
         # Metrics
