@@ -85,17 +85,13 @@ def direc(*args):
 
 class ProgressNumber:
     def __init__(self, max_value):
-        sys.stdout.write("[{:5d} / {:5d}]".format(0, max_value))
-        sys.stdout.flush()
-        sys.stdout.write("\b" * 14)
-
+        self._max_value = max_value
+        print("Progress: [{:5d} / {:5d}]".format(0, self._max_value))
         self._actual = 0
 
     def update_add(self, i):
         self._actual += i
-        sys.stdout.write("{:5d}".format(self._actual))
-        sys.stdout.flush()
-        sys.stdout.write("\b" * 5)
+        print("Progress: [{:5d} / {:5d}]".format(self._actual, self._max_value))
 
 
 
