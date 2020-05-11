@@ -12,50 +12,23 @@ class ScanWrapper:
     def __init__(self, scan: pl.Scan, ignored_edge_slice):
         self._scan = scan
         self._ignored_edge_slice = ignored_edge_slice
-
-        self._data_set = False
-        self._volume = None
-        self._intercepts = None
-        self._slopes = None
-
         self._dtype = np.float32
 
-    def _set_data(self, verbose=False):
-        if self._data_set:
-            return
-
+    def load_data(self, verbose=False):
         images = self._scan.load_all_dicom_images(verbose=verbose)
 
         nr_images_ignored = np.math.floor(len(images) * self._ignored_edge_slice)
         images = images[0: len(images)-nr_images_ignored]
 
-        self._volume = np.stack([img.pixel_array for img in images], axis=0).astype(self._dtype)
-        self._intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
-        self._slopes = np.array([img.RescaleSlope for img in images]).astype(self._dtype)
-        self._data_set = True
+        volume = np.stack([img.pixel_array for img in images], axis=0).astype(self._dtype)
+        intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
+        slopes = np.array([img.RescaleSlope for img in images]).astype(self._dtype)
+
+        return {'len': len(volume), 'volume': volume, 'intercepts': intercepts, 'slopes': slopes}
 
     @property
     def patient_id(self):
         return self._scan.patient_id
-
-    @property
-    def volume(self):
-        self._set_data()
-        return self._volume
-
-    @property
-    def intercepts(self):
-        self._set_data()
-        return self._intercepts
-
-    @property
-    def slopes(self):
-        self._set_data()
-        return self._slopes
-
-    def __len__(self):
-        self._set_data()
-        return len(self._volume)
 
 
 class DicomLoader():
@@ -117,17 +90,19 @@ class DicomLoader():
              mode: one of 'patient' or 'combined'
         """
         if mode == 'combined':
+            raise NotImplementedError()
             i = 0
-            for scanw_batch in self:
-                volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
-                intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
-                slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
-
-                output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
-                for output_data in output_data_batch:
-                    filename = '{:05}'.format(i)
-                    i += 1
-                    array_stream.save_arrays(filename, output_data)
+            # for scanw_batch in self:
+            #
+            #     volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
+            #     intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
+            #     slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
+            #
+            #     output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
+            #     for output_data in output_data_batch:
+            #         filename = '{:05}'.format(i)
+            #         i += 1
+            #         array_stream.save_arrays(filename, output_data)
 
         else:  # mode == 'patient'
 
@@ -136,12 +111,14 @@ class DicomLoader():
                 progress = utility.ProgressNumber(max_value=len(self))
 
             for scanw_batch in self:
-                volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
-                intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
-                slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
-
                 patient_ids = [scanw.patient_id for scanw in scanw_batch]
-                nrs_imgs = [len(scanw) for scanw in scanw_batch]
+                data_batch = [scanw.load_data() for scanw in scanw_batch]
+
+                nrs_imgs = [data['len'] for data in data_batch]
+                volumes = np.concatenate([data['volume'] for data in data_batch], axis=0)
+                intercepts = np.concatenate([data['intercepts'] for data in data_batch], axis=0)
+                slopes = np.concatenate([data['slopes'] for data in data_batch], axis=0)
+
                 imgs_boundaries = [sum(nrs_imgs[:i+1]) for i in range(len(nrs_imgs)-1)]
 
                 output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
