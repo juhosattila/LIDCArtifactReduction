@@ -27,7 +27,7 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         self._dropout_layers: List[Dropout] = []
         self._has_activation_after_upsampling = has_activation_after_upsampling
         self._conv_layer_initalizer = 'he_normal'
-        self._conv_layer_regualizer = regularizers.l2(1e-3)
+        self._conv_layer_regualizer = regularizers.l2(1e-2)
 
         self._model, self._input_layer, self._output_layer = self._build_model()
 
