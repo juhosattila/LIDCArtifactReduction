@@ -21,4 +21,4 @@ training_network.compile(
 
 generator = LIDCDataGenerator(verbose=True, validation_split=0.25, test_split=0.25, batch_size=10)
 training_network.fit(generator.train_iterator, generator.valid_iterator, epochs=5,
-                     verbose=2)
+                     verbose=1)
