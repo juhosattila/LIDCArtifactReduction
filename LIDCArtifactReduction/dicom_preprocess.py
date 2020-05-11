@@ -5,6 +5,7 @@ import pylidc as pl
 
 from LIDCArtifactReduction.offline_transformation import DicomOfflineTransformation
 from LIDCArtifactReduction.array_streams import ArrayStream
+from LIDCArtifactReduction import utility
 
 
 class ScanWrapper:
@@ -70,6 +71,8 @@ class DicomLoader():
         self._scan = pl.query(pl.Scan)
         self._ignored_edge_slice = ignored_edge_slice
 
+        self._scan_list_created = False
+
     @property
     def batch_size(self):
         return self._batch_size
@@ -83,9 +86,18 @@ class DicomLoader():
             self._scan = self._scan.filter(pl.Scan.patient_id.in_(patient_ids))
         return self
 
+    def _create_scan_list(self):
+        if not self._scan_list_created:
+            self._scanw_list = [ScanWrapper(scan, self._ignored_edge_slice) for scan in self._scan.all()]
+        self._scan_list_created = True
+
+    def __len__(self):
+        self._create_scan_list()
+        return len(self._scanw_list)
+
     def __iter__(self):
         self._actual_element = 0
-        self._scanw_list = [ScanWrapper(scan, self._ignored_edge_slice) for scan in self._scan.all()]
+        self._create_scan_list()
         return self
 
     def __next__(self) -> List[ScanWrapper]:
@@ -99,7 +111,7 @@ class DicomLoader():
 
     def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
                                     array_stream=ArrayStream.RecSinoInstance(),
-                                    mode='patient'):
+                                    mode='patient', verbose=True):
         """
         Args:
              mode: one of 'patient' or 'combined'
@@ -119,6 +131,10 @@ class DicomLoader():
 
         else:  # mode == 'patient'
 
+            if verbose:
+                print("We are starting offline transformation:")
+                progress = utility.ProgressNumber(max_value=len(self))
+
             for scanw_batch in self:
                 volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
                 intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
@@ -137,3 +153,6 @@ class DicomLoader():
                     for id, img_data in enumerate(patient_data):
                         arrname = '{:04}'.format(id)
                         array_stream.save_arrays(arrname, img_data)
+
+                if verbose:
+                    progress.update_add(len(scanw_batch))

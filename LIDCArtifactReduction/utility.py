@@ -1,4 +1,5 @@
 import os
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Union, Iterable, List
@@ -80,6 +81,22 @@ def direc(*args):
     if not os.path.exists(direc_path):
         os.makedirs(direc_path)
     return direc_path
+
+
+class ProgressNumber:
+    def __init__(self, max_value):
+        sys.stdout.write("[{:5d} / {:5d}]".format(0, max_value))
+        sys.stdout.flush()
+        sys.stdout.write("\b" * 14)
+
+        self._actual = 0
+
+    def update_add(self, i):
+        self._actual += i
+        sys.stdout.wite("{:5d}".format(self._actual))
+        sys.stdout.flush()
+        sys.stdout.write("\b" * 5)
+
 
 
 # TODO: implement logging of fit data
