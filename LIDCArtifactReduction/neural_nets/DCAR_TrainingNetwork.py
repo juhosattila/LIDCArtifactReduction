@@ -56,7 +56,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def load_weights(self, name=None, latest=False):
         if latest:
-            list_of_files = glob.glob(os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, '*.h5'))
+            list_of_files = glob.glob(os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, '*.hdf5'))
             name = max(list_of_files, key=os.path.getctime)
 
         super().load_weights(name)
