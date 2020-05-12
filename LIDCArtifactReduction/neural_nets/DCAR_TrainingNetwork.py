@@ -1,4 +1,5 @@
 import os
+import glob
 from datetime import datetime
 
 from tensorflow.keras import Model
@@ -53,6 +54,13 @@ class DCAR_TrainingNetwork(ModelInterface):
         self._expected_Radon_layer = expected_Radon_layer
         self._model = model
 
+    def load_weights(self, name=None, latest=False):
+        if latest:
+            list_of_files = glob.glob(os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, '*.h5'))
+            name = max(list_of_files, key=os.path.getctime)
+
+        super().load_weights(name)
+
     @property
     def target_model(self):
         return self._target_model
@@ -86,7 +94,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                             metrics=metrics)
 
     def fit(self, train_iterator, validation_iterator,
-            epochs: int,
+            epochs: int, steps_per_epoch=None, validation_steps=None,
             verbose=1, initial_epoch=0):
 
         # We are going to use early stopping and model saving mechanism.
@@ -109,8 +117,10 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # Number of batches used.
         # Use entire dataset once.
-        steps_per_epoch: int = len(train_iterator)
-        validation_steps: int = len(validation_iterator)
+        if steps_per_epoch is None:
+            steps_per_epoch: int = len(train_iterator)
+        if validation_steps is None:
+            validation_steps: int = len(validation_iterator)
 
         return self._model.fit(x=train_iterator, validation_data=validation_iterator,
                         epochs=epochs, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
