@@ -18,6 +18,8 @@ class ModelInterface:
         self._name = valid_name
         self._model : Model = None
 
+        self._model_weights_extension = '.hdf5'
+
     @property
     def name(self):
         return self._name
@@ -48,12 +50,14 @@ class ModelInterface:
 
     def save_weights(self):
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
-        self._model.save_weights(file + '.h5')
+        self._model.save_weights(file + self._model_weights_extension)
 
     def load_weights(self, name=None):
         valid_name = name if name is not None else self._name
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, valid_name)
-        self._model.load_weights(file + '.h5')
+        if not file.endswith(self._model_weights_extension):
+            file = os.path.join(file, self._model_weights_extension)
+        self._model.load_weights(file)
 
 
 class DCAR_TargetInterface(ModelInterface):
