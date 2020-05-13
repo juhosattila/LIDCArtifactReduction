@@ -25,8 +25,7 @@ class LIDCDataGenerator:
                  verbose : bool = False, test_mode : bool = False,
                  load_data_config : bool or str = False):
         """
-        :param mode: should be either 'patient' or 'combined'.
-        :param load_data_configuration: False or True os string. If false, then data is shuffled.
+        :param load_data_config: False or True os string. If false, then data is shuffled.
             If True, then latest configuration is loaded. If str, than a filename is specified.
         """
         self._batch_size = batch_size
@@ -59,7 +58,7 @@ class LIDCDataGenerator:
 
         else:
             if self._load_data_configuration is True:  # load previously created data
-                latest=self._load_data_configuration
+                latest = self._load_data_configuration
                 filename = None
 
             else:  # load_data_configuration is a str specifying a filename
