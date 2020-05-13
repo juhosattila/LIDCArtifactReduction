@@ -1,15 +1,16 @@
 import os
+import glob
 from tensorflow.keras import Model
 from tensorflow.keras.utils import plot_model
 from abc import abstractmethod
 
-from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction import parameters, utility
 
 
 class ModelInterface:
     object_counter = {}
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, weight_dir=None):
         valid_name = name
         if valid_name is None:
             class_name = type(self).__name__
@@ -19,6 +20,7 @@ class ModelInterface:
         self._model : Model = None
 
         self._model_weights_extension = '.hdf5'
+        self._weight_dir = weight_dir if weight_dir is not None else parameters.MODEL_WEIGHTS_DIRECTORY
 
     @property
     def name(self):
@@ -49,14 +51,24 @@ class ModelInterface:
         self._model.save(file, save_format='tf')
 
     def save_weights(self):
-        file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
+        file = os.path.join(self._weight_dir, self._name)
         self._model.save_weights(file + self._model_weights_extension)
 
-    def load_weights(self, name=None):
-        valid_name = name if name is not None else self._name
-        file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, valid_name)
-        if not file.endswith(self._model_weights_extension):
-            file = os.path.join(file, self._model_weights_extension)
+    def load_weights(self, name=None, latest=False):
+        """
+        :param name: filename containing the weights. Could have full path or not. Extension attached,
+            if it does not already have. See extension in class.
+        :param latest: If true, and there is a weight file in the weight directory, then it is loaded,
+            ignoring name. If there is not a file, than 'name' is loaded.
+        """
+        file = utility.get_filepath(name=name, latest=latest,
+                             directory=self._weight_dir, extension=self._model_weights_extension)
+
+        print("----------------------------------")
+        print("Loading model weights contained in file:")
+        print(file)
+        print("----------------------------------")
+
         self._model.load_weights(file)
 
 

@@ -1,4 +1,5 @@
 import os
+import glob
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
@@ -93,6 +94,28 @@ class ProgressNumber:
         self._actual += i
         print("Progress: [{:5d} / {:5d}]".format(self._actual, self._max_value))
 
+
+def get_filepath(name=None, directory=None, latest=False, extension=''):
+    """
+    :param name: filename of interest. Could have full path or not. Extension will be attached,
+        if it does not already have one.
+    :param latest: If true, and there is a file in the given directory, then it is loaded,
+        ignoring name. If there is not a file, than 'name' is loaded.
+    """
+    success = False
+    if latest:
+        list_of_files = glob.glob(os.path.join(directory, '*', extension))
+        if list_of_files:  # check emptiness
+            filepath = max(list_of_files, key=os.path.getctime)
+            success = True
+
+    if not success:
+        name_no_base = os.path.basename(name)
+        filepath = os.path.join(directory, name_no_base)
+        if not filepath.endswith(extension):
+            filepath = os.path.join(filepath, extension)
+
+    return filepath
 
 
 # TODO: implement logging of fit data

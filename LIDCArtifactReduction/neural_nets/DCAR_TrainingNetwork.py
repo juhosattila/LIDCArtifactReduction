@@ -1,5 +1,4 @@
 import os
-import glob
 from datetime import datetime
 
 from tensorflow.keras import Model
@@ -53,13 +52,6 @@ class DCAR_TrainingNetwork(ModelInterface):
         self._expected_output_layer = expected_output_layer
         self._expected_Radon_layer = expected_Radon_layer
         self._model = model
-
-    def load_weights(self, name=None, latest=False):
-        if latest:
-            list_of_files = glob.glob(os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, '*.hdf5'))
-            name = max(list_of_files, key=os.path.getctime)
-
-        super().load_weights(name)
 
     @property
     def target_model(self):

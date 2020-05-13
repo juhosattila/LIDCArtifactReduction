@@ -1,4 +1,8 @@
 import numpy as np
+import os
+import glob
+import json
+from datetime import datetime
 from sklearn.model_selection import train_test_split
 from skimage.transform import iradon
 
@@ -17,11 +21,14 @@ class LIDCDataGenerator:
     It can provide iterator objects for training, validation and testing.
     """
     def __init__(self, validation_split=0.1, test_split=0.1, batch_size=16,
-                 array_stream: RecSinoArrayStream = RecSinoArrayStream(), mode='patient',
+                 array_stream: RecSinoArrayStream = RecSinoArrayStream(),
                  shuffle : bool = True, add_noise_train : bool = True,
-                 verbose : bool = False, test_mode : bool = False):
+                 verbose : bool = False, test_mode : bool = False,
+                 load_data_config : bool or str = False):
         """
         :param mode: should be either 'patient' or 'combined'.
+        :param load_data_configuration: False or True os string. If false, then data is shuffled.
+            If True, then latest configuration is loaded. If str, than a filename is specified.
         """
         self._batch_size = batch_size
         self._array_stream = array_stream
@@ -29,17 +36,13 @@ class LIDCDataGenerator:
         self._add_noise_train = add_noise_train
         self._test_mode = test_mode
 
+        self._load_data_configuration = load_data_config
+        self._data_configuraion_file_format = '.json'
+        self._data_configuration_dir = parameters.DATA_CONFIGURATION_DIR
+
         validation_test_split = validation_split + test_split
 
-        if mode == 'combined':
-            raise NotImplementedError()
-            # arrnames = self._array_stream.get_names_with_dir()
-            # train_arrnames, valid_test_arrnames = train_test_split(arrnames,
-            #     train_size=1.0-validation_test_split, shuffle=True)
-            # valid_arrnames, test_arrnames = train_test_split(valid_test_arrnames,
-            #     train_size=validation_split / validation_test_split, shuffle=True)
-
-        else:  # mode == 'patient'
+        if self._load_data_configuration is False:
             patient_dirs = self._array_stream.get_directory_names()
 
             train_directories, valid_test_directories = train_test_split(patient_dirs,
@@ -47,9 +50,29 @@ class LIDCDataGenerator:
             valid_directories, test_directories = train_test_split(valid_test_directories,
                 train_size=validation_split / validation_test_split, shuffle=self._shuffle)
 
-            train_arrnames = self._array_stream.get_names_with_dir(train_directories)
-            valid_arrnames = self._array_stream.get_names_with_dir(valid_directories)
-            test_arrnames = self._array_stream.get_names_with_dir(test_directories)
+            # saving filenames
+            if verbose:
+                print("### LIDC Generator ###")
+                print("-----------------------------")
+                print("Created data configuration, saving to disk...")
+                print("-----------------------------")
+            self._save_data_configuration(train_directories, valid_directories, test_directories)
+
+        else:
+            if self._load_data_configuration is True:  # load previously created data
+                latest=self._load_data_configuration
+                filename = None
+
+            else:  # load_data_configuration is a str specifying a filename
+                filename = self._load_data_configuration
+                latest = False
+
+            train_directories, valid_directories, test_directories = \
+                self._load_data_config(filename=filename, latest=latest)
+
+        train_arrnames = self._array_stream.get_names_with_dir(train_directories)
+        valid_arrnames = self._array_stream.get_names_with_dir(valid_directories)
+        test_arrnames = self._array_stream.get_names_with_dir(test_directories)
 
         if verbose:
             print("### LIDC Generator ###")
@@ -75,6 +98,20 @@ class LIDCDataGenerator:
         return LIDCDataIterator(arrnames, self._batch_size, add_noise, self._array_stream,
                                 self._shuffle, self._test_mode)
 
+    def _save_data_configuration(self, train_directories, valid_directories, test_directories):
+        data_config = {'train': train_directories, 'valid': valid_directories, 'test': test_directories}
+        filename = 'config' + datetime.now().strftime("%Y%m%d-%H%M%S") + self._data_configuraion_file_format
+        filepath = os.path.join(self._data_configuration_dir, filename)
+        with open(filepath, 'w') as file:
+            json.dump(data_config, file)
+
+    def _load_data_config(self, filename=None, latest=False):
+        filepath = utility.get_filepath(name=filename, directory=self._data_configuration_dir,
+                                        latest=latest, extension=self._data_configuraion_file_format)
+        with open(filepath) as file:
+            config = json.load(file)
+        return config['train'], config['valid'], config['test']
+
     @property
     def train_iterator(self):
         return self._train_iterator
@@ -95,7 +132,6 @@ class LIDCDataIterator(KerasImgIterator):
         self._add_noise = add_noise
         self._array_stream = array_stream
         self._test_mode = test_mode
-
         # Testing
         self.analysed = False
 
