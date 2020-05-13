@@ -113,7 +113,7 @@ def get_filepath(name=None, directory=None, latest=False, extension=''):
         name_no_base = os.path.basename(name)
         filepath = os.path.join(directory, name_no_base)
         if not filepath.endswith(extension):
-            filepath = os.path.join(filepath, extension)
+            filepath = filepath + extension
 
     return filepath
 
