@@ -104,7 +104,7 @@ def get_filepath(name=None, directory=None, latest=False, extension=''):
     """
     success = False
     if latest:
-        list_of_files = glob.glob(os.path.join(directory, '*', extension))
+        list_of_files = glob.glob(os.path.join(directory, '*' + extension))
         if list_of_files:  # check emptiness
             filepath = max(list_of_files, key=os.path.getctime)
             success = True

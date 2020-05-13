@@ -1,5 +1,4 @@
 import os
-import glob
 from tensorflow.keras import Model
 from tensorflow.keras.utils import plot_model
 from abc import abstractmethod
@@ -70,6 +69,7 @@ class ModelInterface:
         print("----------------------------------")
 
         self._model.load_weights(file)
+        return self
 
 
 class DCAR_TargetInterface(ModelInterface):

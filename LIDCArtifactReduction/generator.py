@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import glob
 import json
 from datetime import datetime
 from sklearn.model_selection import train_test_split
