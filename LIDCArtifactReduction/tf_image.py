@@ -165,7 +165,7 @@ def total_variation_norm(imgs: TensorLike):
     :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
     total_variation = total_variation_op(imgs)
-    tv_norm = tf.reduce_sum(total_variation,axis=[1, 2, 3])
+    tv_norm = tf.reduce_sum(total_variation, axis=[1, 2, 3])
 
     # # TODO: delete
     # return tv_norm, total_variation
@@ -186,7 +186,7 @@ def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     total_variation = total_variation_op(imgs)
     reweighted_tv = total_variation / (total_variation + delta)
 
-    reweighted_tv_norm = tf.reduce_sum(reweighted_tv,axis=[1, 2, 3])
+    reweighted_tv_norm = tf.reduce_sum(reweighted_tv, axis=[1, 2, 3])
 
     # # TODO: delete
     # return reweighted_tv_norm, reweighted_tv
@@ -194,13 +194,17 @@ def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     return reweighted_tv_norm
 
 
-def sparsity_operator(imgs: TensorLike, eps: float):
+def sparsity_sum_operator(imgs: TensorLike, eps: float):
     return tf.reduce_sum(tf.math.log(imgs + eps))
+
+
+def sparsity_mean_operator(imgs: TensorLike, eps: float):
+    return tf.reduce_mean(tf.math.log(imgs + eps))
 
 
 def sparse_total_variation_objective_function(imgs: TensorLike, eps: float):
     total_variation = total_variation_op(imgs)
-    return sparsity_operator(total_variation, eps)
+    return sparsity_mean_operator(total_variation, eps)
 
 
 class SparseTotalVariationObjectiveFunction:
