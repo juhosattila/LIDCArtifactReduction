@@ -5,7 +5,7 @@ import platform
 
 def set_memory_limit(memory_limit=None):
     if memory_limit is None:
-        memory_limit = 6000
+        memory_limit = 6500
 
     # Purely dependent of server nhakni.
     if platform.system() == 'Linux':
@@ -18,10 +18,13 @@ def set_memory_limit(memory_limit=None):
         try:
             tf.config.experimental.set_virtual_device_configuration(gpus[0],
                                                                     [tf.config.experimental.VirtualDeviceConfiguration(
-                                                                        memory_limit=11000)])
+                                                                        memory_limit=memory_limit)])
             logical_gpus = tf.config.experimental.list_logical_devices('GPU')
         except RuntimeError as e:
             print(e)
+
+set_memory_limit()
+
 
 import tensorflow_addons as tfa
 # Register in order to be able to save and load Radon layers.
