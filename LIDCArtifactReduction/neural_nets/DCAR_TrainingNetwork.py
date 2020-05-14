@@ -90,11 +90,14 @@ class DCAR_TrainingNetwork(ModelInterface):
             verbose=1, initial_epoch=0):
 
         # We are going to use early stopping and model saving mechanism.
+        monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_loss'
         file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
-        file = file + '.{epoch:02d}-{val_loss:.2f}' + self._model_weights_extension
-        checkpointer = ModelCheckpoint(filepath=file, save_best_only=True,
-                                       save_weights_only=True, verbose=1,
-                                       save_freq='epoch')
+        file = file + '.{epoch:02d}-{' + monitored_value + ':.2f}' + self._model_weights_extension
+        checkpointer = ModelCheckpoint(
+                        monitor=monitored_value,
+                        filepath=file, save_best_only=True,
+                        save_weights_only=True, verbose=1,
+                        save_freq='epoch')
         earlystopping = EarlyStopping(patience=5, verbose=1)
 
         # Tensorboard and logging

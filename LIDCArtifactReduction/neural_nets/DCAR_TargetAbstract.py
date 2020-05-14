@@ -1,5 +1,6 @@
 from typing import List
 from abc import abstractmethod
+import numbers
 
 from tensorflow.keras.layers import Input, Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
@@ -13,7 +14,11 @@ from LIDCArtifactReduction.neural_nets.interfaces import DCAR_TargetInterface
 
 class DCAR_TargetAbstract(DCAR_TargetInterface):
     def __init__(self, has_batch_norm=True, has_dropout=False,
-                 has_activation_after_upsampling=False, name=None):
+                 has_activation_after_upsampling=False, conv_regularizer=None,
+                 name=None):
+        """
+        :param conv_regularizer: either a  regularizer class or a number for weight of l2 reg
+        """
         super().__init__(name)
 
         # Refactoring: If moved to __init__ parameter,
@@ -27,7 +32,13 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         self._dropout_layers: List[Dropout] = []
         self._has_activation_after_upsampling = has_activation_after_upsampling
         self._conv_layer_initalizer = 'he_normal'
-        self._conv_layer_regualizer = regularizers.l2(1e-2)
+
+        if conv_regularizer is None:
+            self._conv_layer_regualizer = None
+        elif isinstance(conv_regularizer, numbers.Number):
+            self._conv_layer_regualizer = regularizers.l2(conv_regularizer)
+        else:
+            self._conv_layer_regualizer = conv_regularizer
 
         self._model, self._input_layer, self._output_layer = self._build_model()
 
