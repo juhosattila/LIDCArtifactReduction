@@ -12,8 +12,9 @@ class DCAR_UNet_ManyBatchNorms(DCAR_TargetAbstract):
     """
 
     def __init__(self, has_batch_norm=True, has_dropout=False,
-                 has_activation_after_upsampling=False, name=None):
-        super().__init__(has_batch_norm, has_dropout, has_activation_after_upsampling, name)
+                 has_activation_after_upsampling=False, conv_regularizer=None, name=None):
+        super().__init__(has_batch_norm, has_dropout, has_activation_after_upsampling,
+                         conv_regularizer=conv_regularizer, name=name)
 
     def _build_model(self):
         input_layer = self._input()
