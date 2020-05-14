@@ -232,3 +232,20 @@ class SparseTotalVariationObjectiveFunction:
 
     def __call__(self, imgs):
         return sparse_total_variation_objective_function(imgs, self.eps)
+
+
+def total_variation_square_op(imgs: TensorLike):
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
+    diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
+    diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
+    total_variation = (tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
+    return total_variation
+
+
+def TV_square_diff_op(imgs1: TensorLike, imgs2: TensorLike):
+    return total_variation_square_op(imgs1 - imgs2)
+
+
+def TV_square_diff_norm(imgs1: TensorLike, imgs2: TensorLike):
+    return tf.reduce_mean(TV_square_diff_op(imgs1, imgs2))

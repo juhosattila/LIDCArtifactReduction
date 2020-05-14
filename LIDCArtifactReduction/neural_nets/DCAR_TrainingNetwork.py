@@ -14,6 +14,7 @@ from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.interfaces import ModelInterface, DCAR_TargetInterface
 from LIDCArtifactReduction.radon_layer import RadonLayer
 from LIDCArtifactReduction.radon_params import RadonParams
+import LIDCArtifactReduction.losses
 
 
 class DCAR_TrainingNetwork(ModelInterface):
@@ -66,11 +67,18 @@ class DCAR_TrainingNetwork(ModelInterface):
             tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
             # TODO: not tested and does not work
             #tot_var_regualizer = TotalVariationNormObjectiveFunction()
+
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
-        losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
-                  DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
+         #TODO: change back
+        # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
+        #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
+
+        losses = {DCAR_TrainingNetwork.reconstruction_output_name:
+                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=5.0, name='mse_tv_square_diff'),
+                  DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
+
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
                         DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
 
