@@ -160,12 +160,25 @@ def total_variation_op(imgs: TensorLike):
     return total_variation
 
 
-def total_variation_norm(imgs: TensorLike):
+def total_variation_sum_norm(imgs: TensorLike):
     """
     :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
     total_variation = total_variation_op(imgs)
     tv_norm = tf.reduce_sum(total_variation, axis=[1, 2, 3])
+
+    # # TODO: delete
+    # return tv_norm, total_variation
+
+    return tv_norm
+
+
+def total_variation_mean_norm(imgs: TensorLike):
+    """
+    :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
+    """
+    total_variation = total_variation_op(imgs)
+    tv_norm = tf.reduce_mean(total_variation, axis=[1, 2, 3])
 
     # # TODO: delete
     # return tv_norm, total_variation

@@ -10,7 +10,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoa
 from LIDCArtifactReduction import utility
 from LIDCArtifactReduction import parameters
 from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
-from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
+from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction, total_variation_mean_norm
 from LIDCArtifactReduction.neural_nets.interfaces import ModelInterface, DCAR_TargetInterface
 from LIDCArtifactReduction.radon_layer import RadonLayer
 from LIDCArtifactReduction.radon_params import RadonParams
@@ -62,7 +62,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         # Losses
         if not self._total_variation_loss_set:
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
-            tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
+            #tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
+            tot_var_regualizer = total_variation_mean_norm
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
