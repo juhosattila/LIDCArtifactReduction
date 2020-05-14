@@ -186,6 +186,11 @@ def total_variation_mean_norm(imgs: TensorLike):
     return tv_norm
 
 
+class TotalVariationNormObjectiveFunction:
+    def __call__(self, imgs: TensorLike):
+        return total_variation_mean_norm(imgs)
+
+
 def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     """Get reweighted total variation norm of imgs.
 
