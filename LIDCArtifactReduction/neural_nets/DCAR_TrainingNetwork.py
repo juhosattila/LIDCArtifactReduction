@@ -59,9 +59,9 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def compile(self, adam_lr=1e-3, reconstruction_output_weight=1.0,
                 sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
-                total_variation_eps=1.0, tot_var_loss_weight=1e-3):
+                add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3):
         # Losses
-        if not self._total_variation_loss_set:
+        if add_total_variation and not self._total_variation_loss_set:
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
             tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
             # TODO: not tested and does not work
@@ -91,6 +91,8 @@ class DCAR_TrainingNetwork(ModelInterface):
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
             verbose=1, initial_epoch=0):
+
+        self.set_training(training=True)
 
         # We are going to use early stopping and model saving mechanism.
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_loss'
@@ -126,3 +128,23 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def set_training(self, training : bool):
         self.target_model.set_training(training)
+
+    def predict(self, data_iterator, steps=None, verbose=1):
+        self.set_training(training=False)
+
+        # Tensorboard and logging
+        datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "predict", datetimenow)
+        tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
+        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "predict")
+        txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
+        csvlogger = CSVLogger(filename=txt_filename)
+
+        callbacks = [tensorboard, csvlogger]
+
+        # Number of batches used.
+        # Use entire dataset once.
+        if steps is None:
+            steps: int = len(data_iterator)
+
+        return self._model.fit(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)

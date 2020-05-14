@@ -71,6 +71,10 @@ class ModelInterface:
         self._model.load_weights(file)
         return self
 
+    def __call__(self, inputs):
+        self.set_training(training=False)
+        return self._model(inputs)
+
 
 class DCAR_TargetInterface(ModelInterface):
     @property
