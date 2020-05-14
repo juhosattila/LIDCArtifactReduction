@@ -60,7 +60,8 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def compile(self, adam_lr=1e-3, reconstruction_output_weight=1.0,
                 sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
-                add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3):
+                add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3,
+                mse_tv_weight = 3.0):
         # Losses
         if add_total_variation and not self._total_variation_loss_set:
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
@@ -76,7 +77,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
 
         losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=5.0, name='mse_tv_square_diff'),
+                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=mse_tv_weight, name='mse_tv_square_diff'),
                   DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
 
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
