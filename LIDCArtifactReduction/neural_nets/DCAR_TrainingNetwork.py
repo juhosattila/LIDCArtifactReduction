@@ -99,7 +99,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
-            verbose=1, initial_epoch=0):
+            early_stoppig_patience = 5, verbose=1, initial_epoch=0):
 
         self.set_training(training=True)
 
@@ -112,7 +112,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                         filepath=file, save_best_only=True,
                         save_weights_only=True, verbose=1,
                         save_freq='epoch')
-        earlystopping = EarlyStopping(patience=5, verbose=1)
+        earlystopping = EarlyStopping(patience=early_stoppig_patience, verbose=1)
 
         # Tensorboard and logging
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
