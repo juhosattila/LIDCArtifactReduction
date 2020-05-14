@@ -60,6 +60,11 @@ class LIDCDataGenerator:
             if self._load_data_configuration is True:  # load previously created data
                 latest = self._load_data_configuration
                 filename = None
+                if verbose:
+                    print("### LIDC Generator ###")
+                    print("-----------------------------")
+                    print("Found data configuration, loading latest...")
+                    print("-----------------------------")
 
             else:  # load_data_configuration is a str specifying a filename
                 filename = self._load_data_configuration
