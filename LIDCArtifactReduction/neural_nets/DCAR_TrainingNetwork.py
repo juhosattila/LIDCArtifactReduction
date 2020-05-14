@@ -62,8 +62,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         # Losses
         if not self._total_variation_loss_set:
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
-            #tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
-            tot_var_regualizer = total_variation_mean_norm
+            tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
+            #tot_var_regualizer = total_variation_mean_norm
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
