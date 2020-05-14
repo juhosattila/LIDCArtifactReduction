@@ -57,13 +57,15 @@ class DCAR_TrainingNetwork(ModelInterface):
     def target_model(self):
         return self._target_model
 
-    def compile(self, adam_lr=1e-3, reconstruction_output_weight = 1.0, sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
+    def compile(self, adam_lr=1e-3, reconstruction_output_weight=1.0,
+                sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
                 total_variation_eps=1.0, tot_var_loss_weight=1e-3):
         # Losses
         if not self._total_variation_loss_set:
             #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
-            #tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
-            tot_var_regualizer = TotalVariationNormObjectiveFunction()
+            tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
+            # TODO: not tested and does not work
+            #tot_var_regualizer = TotalVariationNormObjectiveFunction()
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 

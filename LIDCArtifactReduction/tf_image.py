@@ -151,12 +151,13 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
     return scale_HU2Radio(zeroed_out_tf)
 
 
-def total_variation_op(imgs: TensorLike):
+def total_variation_op(imgs: TensorLike, eps=0.0):
+    eps_tf = tf.convert_to_tensor(eps, dtype=tf.float32)
     imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
     imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
     diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
     diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
-    total_variation = tf.sqrt(tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
+    total_variation = tf.sqrt(tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]) + eps_tf)
     return total_variation
 
 
@@ -221,7 +222,7 @@ def sparsity_mean_operator(imgs: TensorLike, eps: float):
 
 
 def sparse_total_variation_objective_function(imgs: TensorLike, eps: float):
-    total_variation = total_variation_op(imgs)
+    total_variation = total_variation_op(imgs, eps=1e-3)
     return sparsity_mean_operator(total_variation, eps)
 
 
