@@ -3,7 +3,7 @@ from LIDCArtifactReduction.utility import direc
 
 # Radon geometry
 IMG_SIDE_LENGTH = 256
-NR_OF_SPARSE_ANGLES = 40
+NR_OF_SPARSE_ANGLES = 60
 
 # HU scaling
 HU_TO_CT_SCALING = 1000.0
@@ -16,8 +16,10 @@ else:  # 'Linux'
     PROJECT_DIRECTORY = '/home/juhosa/LIDCArtifactReduction/'
     PROJECT_DATA_DIRECTORY = '/home/juhosa/CI/LIDCArtifactReduction_Data'
 
-DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-transformed-40')
-TEST_DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-sample-transformed-40')
+angles_s = '-' + str(NR_OF_SPARSE_ANGLES)
+
+DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-transformed' + angles_s)
+TEST_DATA_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-sample-transformed' + angles_s)
 MODEL_PLOTS_DIRECTORY = direc(PROJECT_DIRECTORY, 'model_plots')
 MODEL_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'models')
 MODEL_WEIGHTS_DIRECTORY = direc(PROJECT_DATA_DIRECTORY, 'model_weights')
