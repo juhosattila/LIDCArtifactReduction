@@ -26,7 +26,7 @@ def _process_tensorlike(img_or_imgs: Union[tf.Tensor, np.ndarray]) -> List[np.nd
     return processed_imgs
 
 
-def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable]):
+def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values = None, save_names=None, direc=None):
     """
     :param img_or_imgs: should be an image (HWx) or batch of images (NHWx)
         or Iterable of images (e.g. list of tensors, images, that are HWx).
@@ -34,6 +34,9 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable]):
         Images should not have channel information, only if the channel dimension has size 1.
         Hence x is either None or if C, than C=1.
         W must be more than 1, if there is no channel information.
+
+    :param norm_values: if provided, it should be a tuple (min, max)
+    :param save_names: if provided, it should be an array, of names
     """
     processed_imgs = img_or_imgs
     if isinstance(processed_imgs, (tf.Tensor, np.ndarray)):  # HWx or NHWx
@@ -42,9 +45,19 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable]):
         list_of_img_lists = [_process_tensorlike(img) for img in processed_imgs]
         processed_imgs = itertools.chain.from_iterable(list_of_img_lists)
 
-    for img in processed_imgs:
-        plt.imshow(img, cmap=plt.cm.Greys_r)
-        #plt.imshow(img, cmap=plt.get_cmap('Greys'))
+    norm = None
+    if norm_values is not None:
+        norm = plt.Normalize(vmin=norm_values[0], vmax=norm_values[1])
+    cmap = plt.cm.Greys_r
+
+    for idx, img in enumerate(processed_imgs):
+        if norm is not None:
+            img = norm(img)
+        plt.imshow(img, cmap=cmap)
+        if save_names is not None:
+            filename = os.path.join(direc, save_names[idx] + '.png')
+            plt.imsave(arr=img, fname=filename, cmap=cmap)
+            #print(filename)
         plt.show()
 
 
