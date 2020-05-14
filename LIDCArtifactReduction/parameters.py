@@ -3,7 +3,7 @@ from LIDCArtifactReduction.utility import direc
 
 # Radon geometry
 IMG_SIDE_LENGTH = 256
-NR_OF_SPARSE_ANGLES = 60
+NR_OF_SPARSE_ANGLES = 40
 
 # HU scaling
 HU_TO_CT_SCALING = 1000.0
