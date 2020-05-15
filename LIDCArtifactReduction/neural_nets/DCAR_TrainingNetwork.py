@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from tensorflow.keras import Model
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
@@ -58,7 +58,7 @@ class DCAR_TrainingNetwork(ModelInterface):
     def target_model(self):
         return self._target_model
 
-    def compile(self, adam_lr=1e-3, reconstruction_output_weight=1.0,
+    def compile(self, lr=1e-3, reconstruction_output_weight=1.0,
                 sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
                 add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3,
                 mse_tv_weight = 3.0):
@@ -92,7 +92,8 @@ class DCAR_TrainingNetwork(ModelInterface):
                     DCAR_TrainingNetwork.sino_output_name:
                         [RootMeanSquaredError(name='rmse_radon_space')]}
 
-        self._model.compile(optimizer=Adam(adam_lr),
+        # Change back to Adam
+        self._model.compile(optimizer=SGD(lr),
                             loss=losses,
                             loss_weights=loss_weights,
                             metrics=metrics)
