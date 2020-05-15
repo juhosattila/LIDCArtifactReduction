@@ -92,7 +92,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                     DCAR_TrainingNetwork.sino_output_name:
                         [RootMeanSquaredError(name='rmse_radon_space')]}
 
-        # Change back to Adam
+        # TODO: Change back to Adam
         self._model.compile(optimizer=SGD(lr),
                             loss=losses,
                             loss_weights=loss_weights,
