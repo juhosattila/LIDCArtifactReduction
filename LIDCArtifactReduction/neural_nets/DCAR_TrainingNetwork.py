@@ -157,4 +157,4 @@ class DCAR_TrainingNetwork(ModelInterface):
         if steps is None:
             steps: int = len(data_iterator)
 
-        return self._model.fit(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)
+        return self._model.predict(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)

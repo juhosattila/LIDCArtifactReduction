@@ -247,5 +247,19 @@ def TV_square_diff_op(imgs1: TensorLike, imgs2: TensorLike):
     return total_variation_square_op(imgs1 - imgs2)
 
 
+# TODO: refactor. Problem with dimensions
 def TV_square_diff_norm(imgs1: TensorLike, imgs2: TensorLike):
-    return tf.reduce_mean(TV_square_diff_op(imgs1, imgs2))
+    imgs1_tf = tf.convert_to_tensor(imgs1)
+    imgs2_tf = tf.convert_to_tensor(imgs2)
+    return tf.reduce_mean(TV_square_diff_op(imgs1_tf, imgs2_tf))
+
+def ssim_tf(imgs1, imgs2):
+    imgs1_tf = tf.convert_to_tensor(imgs1)
+    imgs2_tf = tf.convert_to_tensor(imgs2)
+    ssim_values = tf.image.ssim(imgs1_tf, imgs2_tf, max_val=5000.0 / parameters.HU_TO_CT_SCALING)
+    return ssim_values
+
+def mean_absolute_error_tf(imgs1, imgs2):
+    imgs1_tf = tf.convert_to_tensor(imgs1)
+    imgs2_tf = tf.convert_to_tensor(imgs2)
+    return tf.reduce_mean(tf.abs(imgs1_tf-imgs2_tf))
