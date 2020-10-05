@@ -36,7 +36,8 @@ class SSIM(Metric):
     def reset_states(self):
         self._mean.reset_states()
 
-# TODO: refactor. Problem with dimensions
+
+# TODO: refactor. Problem with dimensions. I do not know yet.
 def ssim_np(img1, img2):
     return ssim_tf(img1, img2).numpy()
 

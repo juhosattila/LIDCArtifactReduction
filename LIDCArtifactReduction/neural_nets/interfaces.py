@@ -19,6 +19,7 @@ class ModelInterface:
         self._model : Model = None
 
         self._model_weights_extension = '.hdf5'
+        # TODO: does weight_dir exist at all? use utility.directory
         self._weight_dir = weight_dir if weight_dir is not None else parameters.MODEL_WEIGHTS_DIRECTORY
 
     @property
@@ -30,6 +31,7 @@ class ModelInterface:
 
     def plot_model(self, to_file=None, show_shapes=True):
         direc = parameters.MODEL_PLOTS_DIRECTORY
+        # TODO: following if unnecessary here
         if not os.path.exists(direc):
             os.mkdir(direc)
         valid_to_file = to_file if to_file is not None else (self.name + '.png')
@@ -57,8 +59,8 @@ class ModelInterface:
         """
         :param name: filename containing the weights. Could have full path or not. Extension attached,
             if it does not already have. See extension in class.
-        :param latest: If true, and there is a weight file in the weight directory, then it is loaded,
-            ignoring name. If there is not a file, than 'name' is loaded.
+        :param latest: If true, and there is a weight file in the weight directory, then the latest of them is loaded,
+            ignoring 'name'. If there is not a file, than 'name' is loaded.
         """
         file = utility.get_filepath(name=name, latest=latest,
                              directory=self._weight_dir, extension=self._model_weights_extension)

@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Input, Conv2D, \
 class DCAR_UNet_ManyBatchNorms(DCAR_TargetAbstract):
     """Defaults are made according to article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
-    This means that by default there is natch norm, there is No dropout and activation after upsampling.
+    This means that by default there is batch norm, there is No dropout and activation after upsampling.
     """
 
     def __init__(self, has_batch_norm=True, has_dropout=False,

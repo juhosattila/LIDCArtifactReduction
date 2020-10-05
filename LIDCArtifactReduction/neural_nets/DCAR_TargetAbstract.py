@@ -107,9 +107,9 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         return self._output_layer
 
     def set_training(self, training : bool):
+        """Change needs recompiling."""
         self._set_training(training)
 
-    # Used for sake being able to compile after setting training mode.
+    # Used for sake of being able to compile after setting training mode.
     def compile(self):
-        self._model.compile(optimizer=Adam(1e-3),
-                            loss=MeanSquaredError())
+        self._model.compile(optimizer=Adam(1e-3), loss=MeanSquaredError())

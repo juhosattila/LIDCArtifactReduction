@@ -89,7 +89,7 @@ def get_rotate_translate_resampling_params(input_img_side_length, angle,
 
 
 def min_max_scale(img_or_imgs: TensorLike):
-    """Scale in a min-max fashion a list of Tensors.
+    """Scale in a min-max fashion a list of Tensors to interval [0, 1].
 
     Args:
         img_or_imgs: a NHWC or HWC mode tensor.
@@ -106,6 +106,16 @@ def min_max_scale(img_or_imgs: TensorLike):
     min_ex = tf.reshape(per_image_min, shape=broadcastable_shape)
 
     return (img_or_imgs - min_ex) / diff_ex
+
+
+# HU should be understood as difference measured in HU and not absolute scales.
+# HU is not translated necessarily anywhere, but rescaling should be applied to reach
+# to radiosities and absolute gray levels.
+#
+# Radiosity measure is custom rescaling created for own purposes. We use HU_TO_CT_SCALING as scaling parameter.
+#
+# Absolute gray levels is a concept found in dicom files. Interceps and slopes give the transformation to an absolute
+# HU scale from where we reach radiosity levels.
 
 
 def scale_HU2Radio(imgs: TensorLike):
@@ -142,6 +152,7 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
 
     bias_tf = tf.constant([1024.], dtype=tf.float32)
 
+    # Without adding the bias we get absolute HU values.
     rescaled_tf = imgs_tf * slopes_tf + intercepts_tf + bias_tf
 
     # scaling of (min,1000) to (0,1)
@@ -162,26 +173,30 @@ def total_variation_op(imgs: TensorLike, eps=0.0):
 
 
 def total_variation_sum_norm(imgs: TensorLike):
-    """
-    :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
+    """Basically TV-L1.
+
+    Args:
+         imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
     total_variation = total_variation_op(imgs)
     tv_norm = tf.reduce_sum(total_variation, axis=[1, 2, 3])
 
-    # # TODO: delete
+    # For testing
     # return tv_norm, total_variation
 
     return tv_norm
 
 
 def total_variation_mean_norm(imgs: TensorLike):
-    """
-    :param imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
+    """Normalised TV-L1 norm.
+
+    Args:
+         imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
     total_variation = total_variation_op(imgs)
     tv_norm = tf.reduce_mean(total_variation, axis=[1, 2, 3])
 
-    # # TODO: delete
+    # For testing.
     # return tv_norm, total_variation
 
     return tv_norm
@@ -207,7 +222,7 @@ def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
 
     reweighted_tv_norm = tf.reduce_sum(reweighted_tv, axis=[1, 2, 3])
 
-    # # TODO: delete
+    # For testing.
     # return reweighted_tv_norm, reweighted_tv
 
     return reweighted_tv_norm
@@ -222,6 +237,8 @@ def sparsity_mean_operator(imgs: TensorLike, eps: float):
 
 
 def sparse_total_variation_objective_function(imgs: TensorLike, eps: float):
+    # Eps is used in TV gradients, because derivatives were becoming 0/0 after a while.
+    # Think about reducing eps.
     total_variation = total_variation_op(imgs, eps=1e-3)
     return sparsity_mean_operator(total_variation, eps)
 
@@ -247,17 +264,19 @@ def TV_square_diff_op(imgs1: TensorLike, imgs2: TensorLike):
     return total_variation_square_op(imgs1 - imgs2)
 
 
-# TODO: refactor. Problem with dimensions
 def TV_square_diff_norm(imgs1: TensorLike, imgs2: TensorLike):
     imgs1_tf = tf.convert_to_tensor(imgs1)
     imgs2_tf = tf.convert_to_tensor(imgs2)
     return tf.reduce_mean(TV_square_diff_op(imgs1_tf, imgs2_tf))
 
+
+# TODO: refactor. Problem with dimensions. I do not know yet.
 def ssim_tf(imgs1, imgs2):
     imgs1_tf = tf.convert_to_tensor(imgs1)
     imgs2_tf = tf.convert_to_tensor(imgs2)
     ssim_values = tf.image.ssim(imgs1_tf, imgs2_tf, max_val=5000.0 / parameters.HU_TO_CT_SCALING)
     return ssim_values
+
 
 def mean_absolute_error_tf(imgs1, imgs2):
     imgs1_tf = tf.convert_to_tensor(imgs1)

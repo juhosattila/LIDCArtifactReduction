@@ -59,26 +59,38 @@ class DCAR_TrainingNetwork(ModelInterface):
         return self._target_model
 
     def compile(self, lr=1e-3, reconstruction_output_weight=1.0,
-                sino_output_weight=1.0 / parameters.NR_OF_SPARSE_ANGLES,
+                sino_output_weight : float or str = 'auto',
                 add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3,
                 mse_tv_weight = 3.0):
+        """
+        Args:
+             sino_output_weight: if 'auto', it is specified as 1.0 / parameters.NR_OF_SPARSE_ANGLES
+        """
+        _sino_output_weight = sino_output_weight
+        if _sino_output_weight == 'auto':
+            _sino_output_weight = 1.0 / len(self._radon_params.angles)
+
         # Losses
         if add_total_variation and not self._total_variation_loss_set:
-            #tot_var_regualizer = SparseTotalVariationObjectiveFunction(eps=100.0 / parameters.HU_TO_CT_SCALING)  # 5HU / scaling
             tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
-            # TODO: not tested and does not work
-            #tot_var_regualizer = TotalVariationNormObjectiveFunction()
 
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
-         #TODO: change back
+
+        # There are two loss settings. The second one contains a TV squared loss on the edge-differenceimage in order to
+        # preserve edges.
+        # Think about using normal TV non-squared norm rather than TV squared loss.
+
+
         # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
         #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
 
         losses = {DCAR_TrainingNetwork.reconstruction_output_name:
                       LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=mse_tv_weight, name='mse_tv_square_diff'),
                   DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
+
+
 
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
                         DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
@@ -92,8 +104,8 @@ class DCAR_TrainingNetwork(ModelInterface):
                     DCAR_TrainingNetwork.sino_output_name:
                         [RootMeanSquaredError(name='rmse_radon_space')]}
 
-        # TODO: Change back to Adam
-        self._model.compile(optimizer=SGD(lr),
+
+        self._model.compile(optimizer=Adam(lr),
                             loss=losses,
                             loss_weights=loss_weights,
                             metrics=metrics)
@@ -101,8 +113,6 @@ class DCAR_TrainingNetwork(ModelInterface):
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
             early_stoppig_patience = 5, verbose=1, initial_epoch=0):
-
-        self.set_training(training=True)
 
         # We are going to use early stopping and model saving mechanism.
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_loss'
@@ -158,3 +168,5 @@ class DCAR_TrainingNetwork(ModelInterface):
             steps: int = len(data_iterator)
 
         return self._model.predict(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)
+
+    # TODO: evaluation

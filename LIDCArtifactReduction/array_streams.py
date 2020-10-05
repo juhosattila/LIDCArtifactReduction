@@ -8,20 +8,20 @@ from LIDCArtifactReduction import parameters
 
 
 class ArrayStream:
-    def __init__(self, dir=None, array_names=None):
-        self._base_dir = dir
-        if self._base_dir is None:
-            self._base_dir = parameters.DATA_DIRECTORY
+    def __init__(self, directory=None, array_names=None):
+        self._base_dir = directory or parameters.DATA_DIRECTORY
 
         if not os.path.exists(self._base_dir):
             os.mkdir(self._base_dir)
 
         self._array_names = array_names
-        self.actual_path = self._base_dir
+        self._actual_path = self._base_dir
 
     def save_arrays(self, name, arrays: List[np.ndarray]):
-        file = os.path.join(self.actual_path, name)
+        file = os.path.join(self._actual_path, name)
 
+        # change to following is correct and more concise:
+        # data_dict = dict(zip(self._array_names, arrays))
         data_dict = dict()
         for key, arr in zip(self._array_names, arrays):
             data_dict[key] = arr
@@ -48,10 +48,16 @@ class ArrayStream:
             dirs = [dirs]
 
         list_results = [self._get_filenames(direc) for direc in dirs]
+        # list not necessary
+        # deleting list might gain space
         result = list(itertools.chain.from_iterable(list_results))
         return result
 
     def load_arrays(self, name_with_dir):
+        """
+        Args:
+             name_with_dir: Name attached with inner directory relative to the base directory.
+        """
         file = os.path.join(self._base_dir, name_with_dir)
         result = []
         with np.load(file) as data:
@@ -66,10 +72,10 @@ class ArrayStream:
 
     def switch_dir(self, dirname):
         self.create_dir(dirname)
-        self.actual_path = os.path.join(self._base_dir, dirname)
+        self._actual_path = os.path.join(self._base_dir, dirname)
 
     def unswitch(self):
-        self.actual_path = self._base_dir
+        self._actual_path = self._base_dir
 
     _rec_sino_instance = None
     @classmethod
@@ -80,5 +86,5 @@ class ArrayStream:
 
 
 class RecSinoArrayStream(ArrayStream):
-    def __init__(self, dir=None):
-        super().__init__(dir=dir, array_names=['rec', 'sino'])
+    def __init__(self, directory=None):
+        super().__init__(directory=directory, array_names=['rec', 'sino'])

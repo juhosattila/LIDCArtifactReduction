@@ -11,6 +11,7 @@ class DCAR_UNet_FewBatchNorms(DCAR_TargetAbstract):
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, but not everywhere,
     there is NO dropout and activation after upsampling.
+
     """
     def __init__(self, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None, name=None):

@@ -16,7 +16,7 @@ class DummyOfflineTransformation(DicomOfflineTransformation):
 
 
 class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
-    """Resizes images to the target size of the received Radon transformation"""
+    """Resizes images to the input size of the Radon transformation"""
     def __init__(self, resize_size: int, radon_params: RadonParams):
         self._resize_target = [resize_size, resize_size]
         self._radon_transformation = ParallelRadonTransform(img_side_length=resize_size,
@@ -31,7 +31,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         return scaled_data.numpy(), data_sino.numpy()
 
     # Toggle directive depending on environment.
-    # @tf.function
+    @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
         data_tf = tf.convert_to_tensor(data_batch, dtype=tf.float32)
         data_tf = tf.expand_dims(data_tf, axis=-1)

@@ -25,8 +25,9 @@ class LIDCDataGenerator:
                  verbose : bool = False, test_mode : bool = False,
                  load_data_config : bool or str = False):
         """
-        :param load_data_config: False or True os string. If false, then data is shuffled.
-            If True, then latest configuration is loaded. If str, than a filename is specified.
+        Args:
+            load_data_config: boolean or string. If False, then data is shuffled.
+                If True, then latest configuration is loaded. If string, than a filename is specified.
         """
         self._batch_size = batch_size
         self._array_stream = array_stream
@@ -143,6 +144,7 @@ class LIDCDataIterator(KerasImgIterator):
     def _get_batches_of_transformed_samples(self, index_array):
         """Get images with indices in index array, transform them.
         """
+        # self._arrnames[index_array] might just be enough
         relevant_arr_names = [self._arrnames[idx] for idx in index_array]
         good_rec_sino_pairs = [self._array_stream.load_arrays(name)
                               for name in relevant_arr_names]
@@ -160,6 +162,7 @@ class LIDCDataIterator(KerasImgIterator):
 
     def _output_format_manager(self, bad_recs, good_recs, good_sinos):
         # TODO: if upgraded to TF 2.2 remove [None]
+        # These 'None'-s correspond to weights attached to the outputs.
         return ({DCAR_TrainingNetwork.input_name : bad_recs},
                 {DCAR_TrainingNetwork.reconstruction_output_name : good_recs,
                  DCAR_TrainingNetwork.sino_output_name : good_sinos}, [None, None])
@@ -182,6 +185,8 @@ class LIDCDataIterator(KerasImgIterator):
 
     def _inverted_radon(self, sino):
         res = np.transpose(sino)
+        # TODO: refactor and get radon things out or at least radon_params
+        #   best: outsource radon_specific parts
         res = iradon(res, theta=np.linspace(0., 180., parameters.NR_OF_SPARSE_ANGLES),
                      output_size=parameters.IMG_SIDE_LENGTH, circle=True)
         return res
@@ -199,7 +204,7 @@ class LIDCDataIterator(KerasImgIterator):
         sum_scaling = 5.0
 
         # further scale parameter
-        scale = parameters.HU_TO_CT_SCALING / 1000.0 * parameters.IMG_SIDE_LENGTH / sum_scaling
+        scale = 1000.0 / parameters.HU_TO_CT_SCALING * parameters.IMG_SIDE_LENGTH / sum_scaling
 
         # scaling of noise deviation parameter
         alfa = 0.3

@@ -1,4 +1,11 @@
 def init(gpu_memory_limit_MB=None):
+    """Initialising the package is mandatory. Initialises GPU memory and the Tensorflow Addons library.
+
+    The Tensorflow Addons library must be initialised in order to be able to save and load Radon layers.
+
+    Args:
+        gpu_memory_limit_MB: could be None, in which case the system allocates the amount of memory necessary.
+    """
     import tensorflow as tf
     import platform
 
@@ -18,11 +25,14 @@ def init(gpu_memory_limit_MB=None):
             except RuntimeError as e:
                 print(e)
 
+
+    # Set GPU memory limit if necessary
     if gpu_memory_limit_MB is not None:
         set_memory_limit(gpu_mem_limit=gpu_memory_limit_MB)
 
-    import tensorflow_addons as tfa
+
     # Register in order to be able to save and load Radon layers.
+    import tensorflow_addons as tfa
     from packaging import version
     if version.parse(tfa.__version__) >= version.parse("0.9.1"):
         tfa.register_all()

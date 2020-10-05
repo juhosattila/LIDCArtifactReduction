@@ -3,10 +3,31 @@ import numpy as np
 
 
 class RadonParams:
-    def __init__(self, angles: np.ndarray, is_degree=True, projection_width: int = None):
-        self.angles = angles
-        self.is_degree = is_degree
-        self.projection_width = projection_width
+    def __init__(self, angles: np.ndarray or int, is_degree=True, projection_width: int = None):
+        """
+        Args:
+            angles: if array, then it specifies exactly the projections angles;
+                    if integer, then it specifies the number of projections placed at equal angles
+                        from each other in the range 0. to 180. degress.
+        """
+        self._angles = angles
+        if isinstance(self._angles, int):
+            self._angles = np.linspace(0.0, 180.0, self._angles)
+
+        self._is_degree = is_degree
+        self._projection_width = projection_width
+
+    @property
+    def angles(self):
+        return self._angles
+
+    @property
+    def is_degree(self):
+        return self._is_degree
+
+    @property
+    def projection_width(self):
+        return self._projection_width
 
     def toJson(self):
         return {
