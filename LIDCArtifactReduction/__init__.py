@@ -19,8 +19,15 @@ def init(gpu_memory_limit_MB=None):
             # Set resource limit of tensorflow on server
             gpus = tf.config.experimental.list_physical_devices('GPU')
             try:
+                # Only set for gpus[0].
                 tf.config.experimental.set_virtual_device_configuration(gpus[0],
                     [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem_limit)])
+                print("Tensorflow: memory limit is set to {}".format(gpu_mem_limit))
+
+                # # TODO: a pyronn kerheti, de nem biztos, hogy jo otlet. Kiprobal.
+                tf.config.experimental.set_memory_growth(gpus[0], True)
+                print("Tensorflow: memory_growth is set to True")
+
                 logical_gpus = tf.config.experimental.list_logical_devices('GPU')
             except RuntimeError as e:
                 print(e)
