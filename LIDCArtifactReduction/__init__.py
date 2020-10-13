@@ -24,9 +24,9 @@ def init(gpu_memory_limit_MB=None):
                     [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem_limit)])
                 print("Tensorflow: memory limit is set to {}".format(gpu_mem_limit))
 
-                # # TODO: a pyronn kerheti, de nem biztos, hogy jo otlet. Kiprobal.
-                tf.config.experimental.set_memory_growth(gpus[0], True)
-                print("Tensorflow: memory_growth is set to True")
+                # # TODO: somwhow solve this issue with pyronn.
+                # tf.config.experimental.set_memory_growth(gpus[0], True)
+                # print("Tensorflow: memory_growth is set to True")
 
                 logical_gpus = tf.config.experimental.list_logical_devices('GPU')
             except RuntimeError as e:

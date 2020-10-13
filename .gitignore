@@ -9,6 +9,9 @@
 !sample_train.py
 !sample_predict.py
 
+# External package
+!pyronn/**
+
 # Model plots
 !model_plots/*
 
