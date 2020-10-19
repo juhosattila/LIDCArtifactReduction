@@ -23,6 +23,11 @@ PREDICTED_IMAGES_DIR = utility.direc(PROJECT_DATA_DIRECTORY, 'predictions')
 
 class DirectorySystem:
     def __init__(self, geometry: RadonGeometry, data_name: str = '', algorithm_name: str = ''):
+        """
+        Args:
+            data_name: suffix added to data directories name
+            algorithm_name: suffix added to concrete system's directory name
+        """
         if platform.system() == 'Windows':
             self.PROJECT_DIRECTORY = "C:\\Users\\juhos\\NemSzinkronizalt\\NN\\LIDCArtifactReduction"
             self.PROJECT_DATA_DIRECTORY = utility.direc(PROJECT_DIRECTORY, 'LIDCArtifactReduction_Data')
