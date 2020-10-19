@@ -1,3 +1,4 @@
+# Needed in this sequence
 import LIDCArtifactReduction
 LIDCArtifactReduction.init()
 # LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
