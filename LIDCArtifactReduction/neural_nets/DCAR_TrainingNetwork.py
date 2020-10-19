@@ -7,30 +7,35 @@ from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 
-from LIDCArtifactReduction import utility
-from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction import utility, directory_system
+from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
+from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
+from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction, TotalVariationNormObjectiveFunction
-from LIDCArtifactReduction.neural_nets.interfaces import ModelInterface, DCAR_TargetInterface
-from LIDCArtifactReduction.radon_layer import RadonLayer
-from LIDCArtifactReduction.radon_params import RadonParams
+from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
+from LIDCArtifactReduction.neural_nets.DCAR_TargetAbstract import DCAR_TargetInterface
+from LIDCArtifactReduction.radon_layer import ForwardRadonLayer
 import LIDCArtifactReduction.losses
 
 
 class DCAR_TrainingNetwork(ModelInterface):
-    def __init__(self, radon_params: RadonParams,
-                 target_model: DCAR_TargetInterface, name=None):
+    def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ForwardprojectionRadonTransform,
+                 target_model: DCAR_TargetInterface, dir_system: DirectorySystem, name=None):
         super().__init__(name)
         self._target_model = target_model
         self._input_shape = target_model.input_shape
 
-        self._radon_params = radon_params
+        self._radon_geometry = radon_geometry
+        self._radon_transformation = radon_transformation
 
         self._input_layer = None
         self._expected_output_layer = None
         self._expected_Radon_layer = None
 
         self._total_variation_loss_set = False
+
+        self._directory_system = dir_system
 
         self._build_model()
 
@@ -43,8 +48,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         target_output_layer = self._target_model.output_layer
 
         expected_output_layer = target_output_layer
-        expected_Radon_layer = RadonLayer(self._radon_params, name=DCAR_TrainingNetwork.sino_output_name)\
-                                (expected_output_layer)
+        expected_Radon_layer = ForwardRadonLayer(self._radon_transformation,
+                                                 name=DCAR_TrainingNetwork.sino_output_name)(expected_output_layer)
 
         model = Model(inputs=target_input_layer, outputs=[expected_output_layer, expected_Radon_layer],
                       name=self.name)
@@ -61,14 +66,14 @@ class DCAR_TrainingNetwork(ModelInterface):
     def compile(self, lr=1e-3, reconstruction_output_weight=1.0,
                 sino_output_weight : float or str = 'auto',
                 add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3,
-                mse_tv_weight = 3.0):
+                mse_tv_weight=3.0):
         """
         Args:
              sino_output_weight: if 'auto', it is specified as 1.0 / parameters.NR_OF_SPARSE_ANGLES
         """
         _sino_output_weight = sino_output_weight
         if _sino_output_weight == 'auto':
-            _sino_output_weight = 1.0 / len(self._radon_params.angles)
+            _sino_output_weight = 1.0 / self._radon_geometry.nr_projections
 
         # Losses
         if add_total_variation and not self._total_variation_loss_set:
@@ -87,7 +92,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
 
         losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=mse_tv_weight, name='mse_tv_square_diff'),
+                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=mse_tv_weight,
+                                                                           name='mse_tv_square_diff'),
                   DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
 
 
@@ -112,11 +118,11 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
-            early_stoppig_patience = 5, verbose=1, initial_epoch=0):
+            early_stoppig_patience=5, verbose=1, initial_epoch=0):
 
         # We are going to use early stopping and model saving mechanism.
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_loss'
-        file = os.path.join(parameters.MODEL_WEIGHTS_DIRECTORY, self._name)
+        file = os.path.join(directory_system.MODEL_WEIGHTS_DIRECTORY, self._name)
         file = file + '.{epoch:02d}-{' + monitored_value + ':.4f}' + self._model_weights_extension
         checkpointer = ModelCheckpoint(
                         monitor=monitored_value,
@@ -127,9 +133,9 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # Tensorboard and logging
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "fit", datetimenow)
+        tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "fit", datetimenow)
         tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
-        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "fit")
+        txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "fit")
         txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
         csvlogger = CSVLogger(filename=txt_filename)
 
@@ -154,9 +160,9 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # Tensorboard and logging
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_logdir = utility.direc(parameters.TENSORBOARD_LOGDIR, "predict", datetimenow)
+        tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "predict", datetimenow)
         tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
-        txt_logdir = utility.direc(parameters.CSV_LOGDIR, "predict")
+        txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "predict")
         txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
         csvlogger = CSVLogger(filename=txt_filename)
 

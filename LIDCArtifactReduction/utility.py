@@ -1,6 +1,5 @@
 import os
 import glob
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Union, Iterable, List
@@ -35,7 +34,7 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
             or Iterable of images (e.g. list of tensors, images, that are HWx).
             They can be tensorflow or numpy images. If enumerable, then each of them of arbitrary size.
             Images should not have channel information, only if the channel dimension has size 1.
-            Hence x is either None or if C, than C=1.
+            Hence mean is either None or if C, than C=1.
             W must be more than 1, if there is no channel information.
 
         norm_values: if provided, it should be a tuple (min, max)
@@ -49,7 +48,7 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
         processed_imgs = itertools.chain.from_iterable(list_of_img_lists)
 
     cmap = 'gray'
-    normargs = {'vmin':norm_values[0], 'vmax':norm_values[1]} if norm_values is not None else {}
+    normargs = {'vmin': norm_values[0], 'vmax': norm_values[1]} if norm_values is not None else {}
 
     for idx, img in enumerate(processed_imgs):
         plt.imshow(img, cmap=cmap, **normargs)
@@ -63,7 +62,7 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
 def analyse(arrs, names=None):
     """Analyse list of numpy arrays in the form of HW, NHW or NHWC
     """
-    arrays = np.asarray(arrs, dtype='float32')
+    arrays = np.asarray(arrs, dtype=np.float32)
     if np.ndim(arrays) == 2:
         arrays = [arrays]
 
@@ -117,7 +116,7 @@ def get_filepath(name=None, directory=None, latest=False, extension=''):
     Args:
         name: filename of interest. Could have full path or not. Extension will be attached,
             if it does not already have one.
-        latest: If true and there is a file in the given directory, then the latest of these is loaded,
+        latest: If True and there is a file in the given directory, then the latest of these is loaded,
             ignoring argument 'name'. If there is not a file, than 'name' is loaded.
         extension: It may or may not contain '.' .
     """

@@ -4,12 +4,10 @@ from typing import List
 
 import numpy as np
 
-from LIDCArtifactReduction import parameters
-
 
 class ArrayStream:
-    def __init__(self, directory=None, array_names=None):
-        self._base_dir = directory or parameters.DATA_DIRECTORY
+    def __init__(self, directory, array_names=None):
+        self._base_dir = directory
 
         if not os.path.exists(self._base_dir):
             os.mkdir(self._base_dir)
@@ -77,14 +75,7 @@ class ArrayStream:
     def unswitch(self):
         self._actual_path = self._base_dir
 
-    _rec_sino_instance = None
-    @classmethod
-    def RecSinoInstance(cls):
-        if cls._rec_sino_instance is None:
-            cls._rec_sino_instance = ArrayStream(array_names=['rec', 'sino'])
-        return cls._rec_sino_instance
-
 
 class RecSinoArrayStream(ArrayStream):
-    def __init__(self, directory=None):
-        super().__init__(directory=directory, array_names=['rec', 'sino'])
+    def __init__(self, directory):
+        super().__init__(directory, array_names=['rec', 'sino'])

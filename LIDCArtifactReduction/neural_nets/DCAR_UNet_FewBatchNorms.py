@@ -1,21 +1,23 @@
 from LIDCArtifactReduction.neural_nets.DCAR_TargetAbstract import DCAR_TargetAbstract
 
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Conv2D, \
+from tensorflow.keras.layers import Conv2D, \
     Concatenate, Add
 
 
 # TODO: decide whether dropout and batchnorm are necessary
+from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
+
+
 class DCAR_UNet_FewBatchNorms(DCAR_TargetAbstract):
     """Defaults are made with some changes based on the article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, but not everywhere,
     there is NO dropout and activation after upsampling.
-
     """
-    def __init__(self, has_batch_norm=True, has_dropout=False,
+    def __init__(self, radon_geometry: RadonGeometry, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None, name=None):
-        super().__init__(has_batch_norm, has_dropout, has_activation_after_upsampling,
+        super().__init__(radon_geometry, has_batch_norm, has_dropout, has_activation_after_upsampling,
                          conv_regularizer=conv_regularizer, name=name)
 
     def _build_model(self):

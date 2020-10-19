@@ -8,7 +8,7 @@ from LIDCArtifactReduction import parameters
 
 def _get_scale_angle_translate_centre_matrix(scale, angle, translate, centre):
     """Creates a 2D transformation in homogenoues coordinates based on the formula:
-    y=S(R(x-c0) + t + c0)
+    y=S(R(mean-c0) + t + c0)
 
     Translate to origin, rotate, apply arbitrary translation, translate back to centre.
     There is additional scaling for the sake of resampling.
@@ -115,7 +115,7 @@ def min_max_scale(img_or_imgs: TensorLike):
 # Radiosity measure is custom rescaling created for own purposes. We use HU_TO_CT_SCALING as scaling parameter.
 #
 # Absolute gray levels is a concept found in dicom files. Interceps and slopes give the transformation to an absolute
-# HU scale from where we reach radiosity levels.
+# HU stddev from where we reach radiosity levels.
 
 
 def scale_HU2Radio(imgs: TensorLike):

@@ -18,7 +18,9 @@ class RadioSNR(MeanSquaredError):
         super().__init__(name, dtype=dtype)
 
     def result(self):
-        return tf.math.log( tf.square(1000.0 / parameters.HU_TO_CT_SCALING) / (super().result()) )
+        # to make it a usual SNR definition:
+        multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
+        return  multiplier * tf.math.log( tf.square(1000.0 / parameters.HU_TO_CT_SCALING) / (super().result()) )
 
 
 class SSIM(Metric):

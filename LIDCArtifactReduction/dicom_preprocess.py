@@ -6,6 +6,7 @@ import pylidc as pl
 from LIDCArtifactReduction.offline_transformation import DicomOfflineTransformation
 from LIDCArtifactReduction.array_streams import ArrayStream
 from LIDCArtifactReduction import utility
+from LIDCArtifactReduction.utility import ProgressNumber
 
 
 class ScanWrapper:
@@ -31,7 +32,7 @@ class ScanWrapper:
         return self._scan.patient_id
 
 
-class DicomLoader():
+class DicomLoader:
     def __init__(self, batch_size=10, ignored_edge_slice=0.0):
         """
         Args:
@@ -83,53 +84,32 @@ class DicomLoader():
         return relevant_scan_list
 
     def run_offline_transformations(self, offline_transformation: DicomOfflineTransformation,
-                                    array_stream=ArrayStream.RecSinoInstance(),
-                                    mode='patient', verbose=True):
-        """
-        Args:
-             mode: one of 'patient' or 'combined'
-        """
-        if mode == 'combined':
-            raise NotImplementedError()
-            i = 0
-            # for scanw_batch in self:
-            #
-            #     volumes = np.concatenate([scanw.volume for scanw in scanw_batch], axis=0)
-            #     intercepts = np.concatenate([scanw.intercepts for scanw in scanw_batch], axis=0)
-            #     slopes = np.concatenate([scanw.slopes for scanw in scanw_batch], axis=0)
-            #
-            #     output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
-            #     for output_data in output_data_batch:
-            #         filename = '{:05}'.format(i)
-            #         i += 1
-            #         array_stream.save_arrays(filename, output_data)
+                                    array_stream: ArrayStream, verbose=True):
 
-        else:  # mode == 'patient'
+        if verbose:
+            print("We are starting offline transformation:")
+            progress: ProgressNumber = utility.ProgressNumber(max_value=len(self))
+
+        for scanw_batch in self:
+            patient_ids = [scanw.patient_id for scanw in scanw_batch]
+            data_batch = [scanw.load_data() for scanw in scanw_batch]
+
+            nrs_imgs = [data['len'] for data in data_batch]
+            volumes = np.concatenate([data['volume'] for data in data_batch], axis=0)
+            intercepts = np.concatenate([data['intercepts'] for data in data_batch], axis=0)
+            slopes = np.concatenate([data['slopes'] for data in data_batch], axis=0)
+
+            imgs_boundaries = [sum(nrs_imgs[:i+1]) for i in range(len(nrs_imgs)-1)]
+
+            output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
+            patient_data_batch = [output_data_batch[i:j]
+                                  for i, j in zip([0] + imgs_boundaries, imgs_boundaries + [None])]
+
+            for patient_id, patient_data in zip(patient_ids, patient_data_batch):
+                array_stream.switch_dir(patient_id)
+                for idex, img_data in enumerate(patient_data):
+                    arrname = '{:04}'.format(idex)
+                    array_stream.save_arrays(arrname, img_data)
 
             if verbose:
-                print("We are starting offline transformation:")
-                progress = utility.ProgressNumber(max_value=len(self))
-
-            for scanw_batch in self:
-                patient_ids = [scanw.patient_id for scanw in scanw_batch]
-                data_batch = [scanw.load_data() for scanw in scanw_batch]
-
-                nrs_imgs = [data['len'] for data in data_batch]
-                volumes = np.concatenate([data['volume'] for data in data_batch], axis=0)
-                intercepts = np.concatenate([data['intercepts'] for data in data_batch], axis=0)
-                slopes = np.concatenate([data['slopes'] for data in data_batch], axis=0)
-
-                imgs_boundaries = [sum(nrs_imgs[:i+1]) for i in range(len(nrs_imgs)-1)]
-
-                output_data_batch = offline_transformation(volumes, intercepts=intercepts, slopes=slopes)
-                patient_data_batch = [output_data_batch[i:j]
-                                      for i,j in zip([0] + imgs_boundaries, imgs_boundaries + [None])]
-
-                for patient_id, patient_data in zip(patient_ids, patient_data_batch):
-                    array_stream.switch_dir(patient_id)
-                    for id, img_data in enumerate(patient_data):
-                        arrname = '{:04}'.format(id)
-                        array_stream.save_arrays(arrname, img_data)
-
-                if verbose:
-                    progress.update_add(len(scanw_batch))
+                progress.update_add(len(scanw_batch))

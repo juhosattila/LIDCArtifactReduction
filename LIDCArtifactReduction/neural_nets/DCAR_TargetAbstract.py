@@ -8,12 +8,32 @@ from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 
-from LIDCArtifactReduction import parameters
-from LIDCArtifactReduction.neural_nets.interfaces import DCAR_TargetInterface
+from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
+from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
+
+
+class DCAR_TargetInterface(ModelInterface):
+    @property
+    @abstractmethod
+    def input_shape(self):
+        pass
+
+    @property
+    @abstractmethod
+    def input_layer(self):
+        pass
+
+    @property
+    @abstractmethod
+    def output_layer(self):
+        pass
+
+    input_name = 'input_layer'
+    reconstruction_output_name = 'reconstruction_output_layer'
 
 
 class DCAR_TargetAbstract(DCAR_TargetInterface):
-    def __init__(self, has_batch_norm=True, has_dropout=False,
+    def __init__(self, geometry: RadonGeometry, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
                  name=None):
         """
@@ -21,10 +41,8 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         """
         super().__init__(name)
 
-        # Refactoring: If moved to __init__ parameter,
-        # then change e.g. TV loss function's EPS accordingly.
         # Should be tuple of integers that are divisible by 2^4
-        self._input_shape = (parameters.IMG_SIDE_LENGTH, parameters.IMG_SIDE_LENGTH)
+        self._input_shape = (geometry.volume_img_width, geometry.volume_img_width)
 
         self._has_batch_norm = has_batch_norm
         self._batch_norm_layers: List[BatchNormalization] = []

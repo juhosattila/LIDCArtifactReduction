@@ -1,8 +1,9 @@
+import numpy as np
 import tensorflow as tf
 
+from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
+from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 from LIDCArtifactReduction.tf_image import scale_Gray2Radio
-from LIDCArtifactReduction.radon_transformation import ParallelRadonTransform
-from LIDCArtifactReduction.radon_params import RadonParams
 
 
 class DicomOfflineTransformation:
@@ -17,10 +18,9 @@ class DummyOfflineTransformation(DicomOfflineTransformation):
 
 class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
     """Resizes images to the input size of the Radon transformation"""
-    def __init__(self, resize_size: int, radon_params: RadonParams):
-        self._resize_target = [resize_size, resize_size]
-        self._radon_transformation = ParallelRadonTransform(img_side_length=resize_size,
-                                                            angles_or_params=radon_params)
+    def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ForwardprojectionRadonTransform):
+        self._resize_target = [radon_geometry.volume_img_width, radon_geometry.volume_img_width]
+        self._radon_transformation = radon_transformation
 
     def __call__(self, data_batch, intercepts, slopes):
         scaled_data_batch, data_sino_batch = self._transformation(data_batch, intercepts, slopes)
@@ -28,7 +28,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
 
     def _transformation(self, data_batch, intercepts, slopes):
         scaled_data, data_sino = self._tf_transformation(data_batch, intercepts, slopes)
-        return scaled_data.numpy(), data_sino.numpy()
+        return np.asarray(scaled_data, dtype=np.float32), np.asarray(data_sino, dtype=np.float32)
 
     # Toggle directive depending on environment.
     @tf.function
@@ -37,6 +37,5 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         data_tf = tf.expand_dims(data_tf, axis=-1)
         resized_data = tf.image.resize(data_tf, size=self._resize_target)
         scaled_data = scale_Gray2Radio(resized_data, intercepts, slopes)
-        data_sino = self._radon_transformation(scaled_data)
+        data_sino = self._radon_transformation.forwardproject(scaled_data)
         return scaled_data, data_sino
-
