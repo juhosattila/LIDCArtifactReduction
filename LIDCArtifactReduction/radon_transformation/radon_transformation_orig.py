@@ -32,7 +32,6 @@ class ForwardprojectionParallelRadonTransform(ForwardprojectionRadonTransform):
                                                        output_img_side_length=self._projection_width),
                 self._angles)
 
-    @tf.function
     def forwardproject(self, imgs: TensorLike):
 
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)

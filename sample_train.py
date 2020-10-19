@@ -14,7 +14,7 @@ from LIDCArtifactReduction.generator.generator import LIDCDataGenerator
 from LIDCArtifactReduction.neural_nets.FBPConvnet_generator_transform import FBPConvnetGeneratorTransform
 
 
-geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=30)
+geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=40)
 radon_transform = ParallelRadonTransform(geometry)
 
 ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='orig')

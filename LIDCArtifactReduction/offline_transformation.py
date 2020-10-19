@@ -27,15 +27,19 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         return list(zip(scaled_data_batch, data_sino_batch))
 
     def _transformation(self, data_batch, intercepts, slopes):
-        scaled_data, data_sino = self._tf_transformation(data_batch, intercepts, slopes)
+        data_batch_tf = tf.convert_to_tensor(data_batch, dtype=tf.float32)
+        intercepts_tf = tf.convert_to_tensor(intercepts, dtype=tf.float32)
+        slopes_tf = tf.convert_to_tensor(intercepts, dtype=tf.float32)
+        scaled_data, data_sino = self._tf_transformation(data_batch_tf, intercepts_tf, slopes_tf)
         return np.asarray(scaled_data, dtype=np.float32), np.asarray(data_sino, dtype=np.float32)
 
     # Toggle directive depending on environment.
+    # !! Always convert arguments to tensor before passing, otherwise new and new
+    # Graphs will be created, slowing down the execution.
     @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
-        data_tf = tf.convert_to_tensor(data_batch, dtype=tf.float32)
-        data_tf = tf.expand_dims(data_tf, axis=-1)
-        resized_data = tf.image.resize(data_tf, size=self._resize_target)
+        data_batch = tf.expand_dims(data_batch, axis=-1)
+        resized_data = tf.image.resize(data_batch, size=self._resize_target)
         scaled_data = scale_Gray2Radio(resized_data, intercepts, slopes)
         data_sino = self._radon_transformation.forwardproject(scaled_data)
         return scaled_data, data_sino
