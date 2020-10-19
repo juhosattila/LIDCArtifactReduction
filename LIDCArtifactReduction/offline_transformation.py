@@ -36,7 +36,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
     # Toggle directive depending on environment.
     # !! Always convert arguments to tensor before passing, otherwise new and new
     # Graphs will be created, slowing down the execution.
-    @tf.function
+    # @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
         data_batch = tf.expand_dims(data_batch, axis=-1)
         resized_data = tf.image.resize(data_batch, size=self._resize_target)
