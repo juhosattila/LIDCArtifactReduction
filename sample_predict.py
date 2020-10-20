@@ -1,7 +1,9 @@
+import LIDCArtifactReduction
+#IDCArtifactReduction.init()
+LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
+
 from datetime import datetime
 
-import LIDCArtifactReduction
-#LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
 from LIDCArtifactReduction import utility, directory_system
 from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 from LIDCArtifactReduction.directory_system import DirectorySystem
@@ -12,10 +14,6 @@ from LIDCArtifactReduction.neural_nets.FBPConvnet_generator_transform import FBP
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_orig import ParallelRadonTransform
 from LIDCArtifactReduction.utility import show_grey
-
-LIDCArtifactReduction.init()
-
-
 
 
 geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=40)
