@@ -40,7 +40,18 @@ class ModelInterface:
 
     @abstractmethod
     def set_training(self, training : bool):
+        """After set_training we usually need recompilation."""
         pass
+
+    def set_inference_mode(self):
+        """Sets model to inference mode. Recompilation done."""
+        self.set_training(training=False)
+        self.compile()
+
+    def set_learning_mode(self):
+        """After this we usually need recompilation."""
+        self.set_training(training=True)
+
 
     # TODO: not yet used, beacuse Radon layers are not serialisable
     def save(self):
@@ -73,6 +84,4 @@ class ModelInterface:
         return self
 
     def __call__(self, inputs):
-        # TODO: recompilation?
-        self.set_training(training=False)
         return self._model(inputs)
