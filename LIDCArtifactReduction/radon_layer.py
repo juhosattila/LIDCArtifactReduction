@@ -9,16 +9,6 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts i
 class ForwardRadonLayer(Layer):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform, name=None):
         super().__init__(trainable=False, name=name)
-
-        # TODO: delete
-        # self._radon_geometry = angles_or_params
-        # if not isinstance(angles_or_params, RadonGeometry):
-        #     self._radon_geometry = RadonGeometry(nr_projections=angles_or_params, is_degree=is_degree,
-        #                                        projection_width=projection_width)
-        #
-        # # To be assigned after call to `build'.
-        # self._radon_transformation = None
-        # self._img_side_length = None
         self._radon_transformation = radon_transformation
 
     def call(self, inputs, **kwargs):

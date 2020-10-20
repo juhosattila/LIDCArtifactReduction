@@ -61,7 +61,7 @@ class ParallelRadonTransform(RadonTransform):
         self._forward_parallel_radon_transform = ForwardprojectionParallelRadonTransform(radon_geometry)
 
     def forwardproject(self, imgs: TensorLike):
-        return np.asarray(self._forward_parallel_radon_transform.forwardproject(imgs), dtype=np.float32)
+        return self._forward_parallel_radon_transform.forwardproject(imgs)
 
     def backproject(self, sinos: TensorLike):
         raise NotImplementedError()
