@@ -92,10 +92,6 @@ class LIDCDataGenerator:
             print("Test arrs: ", len(test_arrnames))
             print("-----------------------------")
 
-        # self._train_iterator = self._get_iterator(train_arrnames, add_noise=self._add_noise_train)
-        # self._valid_iterator = self._get_iterator(valid_arrnames, add_noise=False)
-        # self._test_iterator = self._get_iterator(test_arrnames, add_noise=False)
-
         self._train_arrnames = train_arrnames
         self._valid_arrnames = valid_arrnames
         self._test_arrnames = test_arrnames
@@ -114,24 +110,6 @@ class LIDCDataGenerator:
         with open(filepath) as file:
             config = json.load(file)
         return config['train'], config['valid'], config['test']
-
-
-    # def _get_iterator(self, arrnames, add_noise):
-    #     return LIDCDataIterator(arrnames, self._batch_size, add_noise, self._array_stream,
-    #                             self._shuffle, self._test_mode)
-
-    # @property
-    # def train_iterator(self):
-    #     return self._train_iterator
-    #
-    # @property
-    # def valid_iterator(self):
-    #     return self._valid_iterator
-    #
-    # @property
-    # def test_iterator(self):
-    #     return self._test_iterator
-
 
     def _get_iterator(self, transformer, arrnames):
         return LIDCDataIterator(arrnames=arrnames, batch_size=self._batch_size, array_stream=self._array_stream,
@@ -167,89 +145,3 @@ class LIDCDataIterator(KerasImgIterator):
         good_sinos = np.stack([pair[1] for pair in good_rec_sino_pairs], axis=0)
 
         return self._transformer.transform(reconstructions=good_recs, sinograms=good_sinos)
-
-        #
-        # if self._test_mode:
-        #     all_both = [self._transform(good_sino) for good_sino in good_sinos]
-        #     bad_recs = [a[0] for a in all_both]
-        #     bad_sinos = [a[1] for a in all_both]
-        #     return bad_recs, [good_recs, good_sinos], bad_sinos
-        #
-        # bad_recs = np.stack([self._transform(good_sino) for good_sino in good_sinos], axis=0)
-        # return self._output_format_manager(bad_recs, good_recs, good_sinos)
-
-    # def _output_format_manager(self, bad_recs, good_recs, good_sinos):
-    #     # TODO: if upgraded to TF 2.2 remove [None]
-    #     # These 'None'-s correspond to weights attached to the outputs.
-    #     return ({DCAR_TrainingNetwork.input_name : bad_recs},
-    #             {DCAR_TrainingNetwork.reconstruction_output_name : good_recs,
-    #              DCAR_TrainingNetwork.sino_output_name : good_sinos}, [None, None])
-
-    # def _transform(self, sino):
-    #     # cut 3rd channel dimension, which has C=1
-    #     sino2D = np.reshape(sino, newshape=np.shape(sino)[:2])
-    #
-    #     if self._add_noise:
-    #         sino2D = self._generate_noise(sino2D)
-    #
-    #     bad_rec = self._inverted_radon(sino2D)
-    #     # add back channel dimension
-    #     bad_rec = np.expand_dims(bad_rec, axis=-1)
-    #
-    #     if self._test_mode:
-    #         return bad_rec, sino2D
-    #
-    #     return bad_rec
-
-    # def _inverted_radon(self, sino):
-    #     res = np.transpose(sino)
-    #     # TODO: refactor and get radon things out or at least radon_geometry
-    #     #   best: outsource radon_specific parts
-    #     res = iradon(res, theta=np.linspace(0., 180., parameters.NR_OF_SPARSE_ANGLES),
-    #                  output_size=parameters.IMG_SIDE_LENGTH, circle=True)
-    #     return res
-    #
-    # def _generate_noise(self, sino):
-    #     """See documentation for explananation."""
-    #
-    #     # pmax refers to the approximate maximum value in the sinogram
-    #     # For scaling 1000HU to 1CT, we have (relevant sinomax) ~ IMG_SIDE_LENGTH
-    #     pmax = parameters.IMG_SIDE_LENGTH * 1000.0 / parameters.HU_TO_CT_SCALING
-    #
-    #     # base_intensity in logarithm. This definies sum scaling.
-    #
-    #     # These should changed together.
-    #     lnI0 = 10 * np.log(5)
-    #     sum_scaling = 5.0
-    #
-    #     # Scaling defines how much the maximum sinogramvalue is related to lnI0.
-    #     scale = 1000.0 / parameters.HU_TO_CT_SCALING * parameters.IMG_SIDE_LENGTH / sum_scaling
-    #
-    #     # scaling of noise deviation parameter
-    #     alfa = 0.3
-    #
-    #     # deviation of noise
-    #     sigma_I0 = alfa * np.exp(lnI0 - 1.0 / scale * pmax)
-    #
-    #     I_normal_noise = np.random.normal(loc=0.0, scale=sigma_I0, size=np.shape(sino))
-    #     lnI = lnI0 - 1.0 / scale * sino
-    #     I_no_noise = np.exp(lnI)
-    #     I_added_noise = I_no_noise + I_normal_noise
-    #
-    #     # some elements might be too low
-    #     too_low = I_added_noise < I_no_noise / 2.0
-    #     I_added_noise[too_low] = I_no_noise[too_low]
-    #
-    #     I_Poisson = np.random.poisson(I_added_noise)
-    #
-    #     lnI_added_noise_and_Poisson = np.log(I_Poisson)
-    #     sino_added_noise = scale * (lnI0 - lnI_added_noise_and_Poisson)
-    #
-    #     # Testing
-    #     if self._test_mode and not self.analysed:
-    #         self.analysed = True
-    #         utility.analyse(I_no_noise, "I no noise")
-    #         utility.analyse(I_added_noise, "I normal noise")
-    #         utility.analyse(I_Poisson, "I Poisson")
-    #
-    #     return sino_added_noise
