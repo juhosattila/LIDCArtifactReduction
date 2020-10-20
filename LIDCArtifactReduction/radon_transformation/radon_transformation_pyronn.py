@@ -39,7 +39,10 @@ class PyronnParallelForwardprojectionRadonTransform(ForwardprojectionRadonTransf
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
-    @tf.function
+    # Always convert arguments to tensor before passing and make sure, that shape is constant,
+    # otherwise new and new graphs will be created, slowing down the execution.
+    # In this case size of tensor is varying, hence it is slow. Do not use yet.
+    # @tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
         sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes batch_dimension
@@ -51,7 +54,7 @@ class PyronnParallelBackprojectionRadonTransform(BackprojectionRadonTransform):
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
-    @tf.function
+    #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
         recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes batch_dimension
@@ -63,21 +66,21 @@ class PyronnParallelRadonTransform(RadonTransform):
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
-    @tf.function
+    #@tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
         sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes batch_dimension
         sinos_4D = tf.expand_dims(sinos_3D, axis=-1)
         return sinos_4D
 
-    @tf.function
+    #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
         recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes batch_dimension
         recos_4D = tf.expand_dims(recos_3D, axis=-1)
         return recos_4D
 
-    @tf.function
+    #@tf.function
     def invert(self, sinos: TensorLike):
         raise NotImplementedError()
 
