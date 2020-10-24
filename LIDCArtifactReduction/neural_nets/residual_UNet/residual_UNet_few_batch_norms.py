@@ -1,24 +1,22 @@
-from LIDCArtifactReduction.neural_nets.DCAR_TargetAbstract import DCAR_TargetAbstract
-
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, \
     Concatenate, Add
 
+from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_abstract import ResidualUNetAbstract
+
 
 # TODO: decide whether dropout and batchnorm are necessary
-from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
-
-
-class DCAR_UNet_FewBatchNorms(DCAR_TargetAbstract):
+class ResidualUNetFewBatchNorms(ResidualUNetAbstract):
     """Defaults are made with some changes based on the article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, but not everywhere,
     there is NO dropout and activation after upsampling.
     """
-    def __init__(self, radon_geometry: RadonGeometry, has_batch_norm=True, has_dropout=False,
-                 has_activation_after_upsampling=False, conv_regularizer=None, name=None):
-        super().__init__(radon_geometry, has_batch_norm, has_dropout, has_activation_after_upsampling,
-                         conv_regularizer=conv_regularizer, name=name)
+    def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
+                 has_activation_after_upsampling=False, conv_regularizer=None,
+                 name=None, input_name=None, output_name=None):
+        super().__init__(volume_img_width, has_batch_norm, has_dropout, has_activation_after_upsampling,
+                         conv_regularizer=conv_regularizer, name=name, input_name=input_name, output_name=output_name)
 
     def _build_model(self):
         input_layer = self._input()
@@ -75,13 +73,15 @@ class DCAR_UNet_FewBatchNorms(DCAR_TargetAbstract):
         u0 = self._conv_k3_activation(64)(u0)
         u0 = self._conv_k3_activation(64)(u0)
 
-        diff_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
+        difference_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
                             kernel_initializer=self._conv_layer_initalizer,
                             kernel_regularizer=self._conv_layer_regualizer)(u0)
 
-        output_layer = Add(name=DCAR_TargetAbstract.reconstruction_output_name)\
-                        ([input_layer, diff_layer])
+        output_layer = Add(name=self._output_name)([input_layer, difference_layer])
 
         model = Model(inputs=input_layer, outputs=output_layer, name=self.name)
 
-        return model, input_layer, output_layer
+        self._model = model
+        self._input_layer = input_layer
+        self._output_layer = output_layer
+        self._difference_layer = difference_layer

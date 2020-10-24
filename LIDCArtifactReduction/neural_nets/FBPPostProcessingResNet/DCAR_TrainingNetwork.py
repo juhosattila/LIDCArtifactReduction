@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from tensorflow.keras import Model
-from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
@@ -12,9 +12,9 @@ from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
-from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction, TotalVariationNormObjectiveFunction
+from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
-from LIDCArtifactReduction.neural_nets.DCAR_TargetAbstract import DCAR_TargetInterface
+from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_TargetInterface
 from LIDCArtifactReduction.radon_layer import ForwardRadonLayer
 import LIDCArtifactReduction.losses
 

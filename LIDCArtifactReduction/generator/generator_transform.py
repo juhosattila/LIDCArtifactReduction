@@ -18,7 +18,7 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
                  add_noise: bool, lnI0, sum_scaling, test_mode: bool):
         """
         lnI0 and sum_scaling should changed together. For example:
-        lnI0 = 10 * self.log(5)
+        lnI0 = 5 * self.log(10)
         sum_scaling = 5.0
         """
         self._geometry = geometry
@@ -69,4 +69,3 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
             utility.analyse(I_Poisson, "I Poisson")
 
         return sino_added_noise
-

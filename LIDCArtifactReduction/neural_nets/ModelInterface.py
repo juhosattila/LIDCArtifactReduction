@@ -43,6 +43,7 @@ class ModelInterface:
         """After set_training we usually need recompilation."""
         pass
 
+    # TODO: this is not needed
     def set_inference_mode(self):
         """Sets model to inference mode. Recompilation done."""
         self.set_training(training=False)
@@ -52,6 +53,8 @@ class ModelInterface:
         """After this we usually need recompilation."""
         self.set_training(training=True)
 
+    def __call__(self, inputs):
+        return self._model(inputs)
 
     # TODO: not yet used, beacuse Radon layers are not serialisable
     def save(self):
@@ -83,5 +86,3 @@ class ModelInterface:
         self._model.load_weights(file)
         return self
 
-    def __call__(self, inputs):
-        return self._model(inputs)

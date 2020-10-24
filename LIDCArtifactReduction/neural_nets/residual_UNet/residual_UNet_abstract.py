@@ -9,40 +9,41 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
-from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 
 
-class DCAR_TargetInterface(ModelInterface):
-    @property
-    @abstractmethod
-    def input_shape(self):
-        pass
+# TODO: delete
+# class DCAR_TargetInterface(ModelInterface):
+#     @property
+#     @abstractmethod
+#     def input_shape(self):
+#         pass
+#
+#     @property
+#     @abstractmethod
+#     def input_layer(self):
+#         pass
+#
+#     @property
+#     @abstractmethod
+#     def output_layer(self):
+#         pass
+#
+#     input_name = 'input_layer'
+#     reconstruction_output_name = 'reconstruction_output_layer'
 
-    @property
-    @abstractmethod
-    def input_layer(self):
-        pass
 
-    @property
-    @abstractmethod
-    def output_layer(self):
-        pass
-
-    input_name = 'input_layer'
-    reconstruction_output_name = 'reconstruction_output_layer'
-
-
-class DCAR_TargetAbstract(DCAR_TargetInterface):
-    def __init__(self, geometry: RadonGeometry, has_batch_norm=True, has_dropout=False,
+class ResidualUNetAbstract(ModelInterface):
+    def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
-                 name=None):
+                 name=None, input_name=None, output_name=None):
         """
-        :param conv_regularizer: either a  regularizer class or a number for weight of l2 reg
+        Args:
+            conv_regularizer: either a  regularizer class or a number for weight of l2 reg
         """
         super().__init__(name)
 
         # Should be tuple of integers that are divisible by 2^4
-        self._input_shape = (geometry.volume_img_width, geometry.volume_img_width)
+        self._input_shape = (volume_img_width, volume_img_width)
 
         self._has_batch_norm = has_batch_norm
         self._batch_norm_layers: List[BatchNormalization] = []
@@ -58,7 +59,15 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
         else:
             self._conv_layer_regualizer = conv_regularizer
 
-        self._model, self._input_layer, self._output_layer = self._build_model()
+        self._input_name = input_name or 'input_layer'
+        self._output_name = output_name or 'output_layer'
+
+        self._model = None
+        self._input_layer = None
+        self._output_layer = None
+        self._difference_layer = None
+
+        self._build_model()
 
     def _set_training(self, training: bool):
         """Change needs recompiling."""
@@ -68,7 +77,7 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
             dropout_layer.training = training
 
     def _input(self):
-        return Input(self._input_shape + (1,), name=DCAR_TargetInterface.input_name)
+        return Input(self._input_shape + (1,), name=self._input_name)
 
     def _conv_k3_activation(self, filters: int):
         return Conv2D(filters=filters, kernel_size=(3, 3), padding='same',
@@ -123,6 +132,11 @@ class DCAR_TargetAbstract(DCAR_TargetInterface):
     @property
     def output_layer(self):
         return self._output_layer
+
+    @property
+    def difference_layer(self):
+        """Returns output_layer - input_layer."""
+        return self._difference_layer
 
     def set_training(self, training : bool):
         """Change needs recompiling."""

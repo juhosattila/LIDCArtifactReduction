@@ -2,7 +2,7 @@ import numpy as np
 
 from LIDCArtifactReduction.generator.generator_transform import LIDCGeneratorNoisyTransform
 from LIDCArtifactReduction.math_helpers.numpy_math_mixin import NumpyMathMixin
-from LIDCArtifactReduction.neural_nets.DCAR_TrainingNetwork import DCAR_TrainingNetwork
+from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.DCAR_TrainingNetwork import DCAR_TrainingNetwork
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import RadonTransform
 
