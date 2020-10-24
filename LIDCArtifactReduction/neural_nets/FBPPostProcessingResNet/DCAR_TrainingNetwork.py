@@ -15,7 +15,7 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts i
 from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_TargetInterface
-from LIDCArtifactReduction.radon_layer import ForwardRadonLayer
+from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 import LIDCArtifactReduction.losses
 
 

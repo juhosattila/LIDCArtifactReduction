@@ -11,7 +11,7 @@ from pyronn.ct_reconstruction.helpers.filters import filters
 
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform, \
-    BackprojectionRadonTransform, RadonTransform
+    BackprojectionRadonTransform, RadonTransform, ARTRadonTransform
 
 
 def get_pyronn_geometry(radon_geometry: RadonGeometry):
@@ -95,3 +95,12 @@ class PyronnParallelRadonTransform(RadonTransform):
         # sinogram_filtered = tf.math.real(tf.signal.ifft(sino_filtered_freq))
         #
         # reco = parallel_backprojection2d(sinogram_filtered, geometry)
+
+
+class PyronnParallelARTRadonTransform(PyronnParallelRadonTransform, ARTRadonTransform):
+    def __init__(self, radon_geometry: RadonGeometry, alfa):
+        PyronnParallelRadonTransform.__init__(self, radon_geometry=radon_geometry)
+        ARTRadonTransform.__init__(self, tf.convert_to_tensor(alfa, dtype=tf.float32))
+
+    def ART_step(self, imgs: TensorLike, sinos: TensorLike):
+        return imgs + self.alfa * self.backproject(sinos - self.forwardproject(imgs))

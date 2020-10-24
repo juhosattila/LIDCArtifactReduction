@@ -2,7 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
 import LIDCArtifactReduction
-from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
+from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform, \
+    RadonTransform
 
 
 @tf.keras.utils.register_keras_serializable(LIDCArtifactReduction.__name__)
@@ -48,3 +49,18 @@ class ForwardRadonLayer(Layer):
     #     print("Suddenly from_config works.")
     #     return cls(angles_or_params=radon_params, name=config['name'])
     #
+
+
+@tf.keras.utils.register_keras_serializable(LIDCArtifactReduction.__name__)
+class ARTRadonLayer(Layer):
+    def __init__(self, radon_transformation: RadonTransform, name=None):
+        super().__init__(trainable=False, name=name)
+        self._radon_transformation = radon_transformation
+
+    def call(self, inputs, **kwargs):
+        volumes, sinos = inputs
+        computed_sinos = self._radon_transformation.forwardproject(volumes)
+
+
+    def get_config(self):
+        raise NotImplementedError()
