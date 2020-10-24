@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Layer
 
 import LIDCArtifactReduction
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform, \
-    RadonTransform
+    ARTRadonTransform
 
 
 @tf.keras.utils.register_keras_serializable(LIDCArtifactReduction.__name__)
@@ -53,14 +53,13 @@ class ForwardRadonLayer(Layer):
 
 @tf.keras.utils.register_keras_serializable(LIDCArtifactReduction.__name__)
 class ARTRadonLayer(Layer):
-    def __init__(self, radon_transformation: RadonTransform, name=None):
+    def __init__(self, radon_transformation: ARTRadonTransform, name=None):
         super().__init__(trainable=False, name=name)
         self._radon_transformation = radon_transformation
 
     def call(self, inputs, **kwargs):
         volumes, sinos = inputs
-        computed_sinos = self._radon_transformation.forwardproject(volumes)
-
+        return self._radon_transformation.ART_step(volumes, sinos)
 
     def get_config(self):
         raise NotImplementedError()
