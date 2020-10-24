@@ -7,7 +7,7 @@ from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeome
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import RadonTransform
 
 
-class FBPConvnetGeneratorTransform(LIDCGeneratorNoisyTransform, NumpyMathMixin):
+class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
     def __init__(self, geometry: RadonGeometry, radon_transform: RadonTransform,
                  add_noise: bool, lnI0=10 * np.log(5), sum_scaling=5.0,
                  test_mode: bool = False):
