@@ -1,3 +1,6 @@
+import os
+
+import tensorflow as tf
 from tensorflow.keras.layers import Input
 from tensorflow.keras import Model
 
@@ -10,16 +13,22 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn impo
 
 
 class IterativeARTResNet(ModelInterface):
+
     def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ARTRadonTransform = None, name=None):
         super().__init__(name=name)
         self._radon_geometry = radon_geometry
 
         # If adding new options, then refactor and inject dependency.
         self._conv_regularizer = 1e-4
-        alfa = 5.0 / 256
+        # Should be set based on geometry.
+        alfa = 0.5 / 256
         self._radon_transformation = radon_transformation or PyronnParallelARTRadonTransform(self._radon_geometry, alfa=alfa)
 
         self._model = None
+        self._imgs_input_layer = None
+        self._sinos_input_layer = None
+        self._output_layer = None
+        self._difference_layer = None
         self._build()
 
     imgs_input_name = 'imgs_input_layer'
@@ -40,12 +49,37 @@ class IterativeARTResNet(ModelInterface):
         # If adding new options, then refactor and inject dependency.
         kernel_model = ResidualUNetFewBatchNorms(volume_img_width=self._radon_geometry.volume_img_width,
                                                 conv_regularizer=self._conv_regularizer,
-                                                   input_name='kernel_input',
+                                                input_name='kernel_input',
                                                 output_name='kernel_output',
-                                                 name=IterativeARTResNet.output_name)
+                                                name=IterativeARTResNet.output_name)
 
         output_layer = kernel_model(art_layer)
 
         self._model = Model(inputs=[imgs_input_layer, sinos_input_layer], outputs=output_layer)
+        self._imgs_input_layer = imgs_input_layer
+        self._sinos_input_layer = sinos_input_layer
+        self._output_layer = output_layer
+        self._difference_layer = kernel_model.difference_layer
 
+    @property
+    def imgs_input_layer(self):
+        return self._imgs_input_layer
 
+    @property
+    def sinos_input_layer(self):
+        return self._sinos_input_layer
+
+    @property
+    def output_layer(self):
+        return self._output_layer
+
+    @property
+    def difference_layer(self):
+        """Returns output_layer - input_layer."""
+        return self._difference_layer
+
+    def compile(self):
+        raise NotImplementedError()
+
+    def set_training(self, training: bool):
+        raise NotImplementedError()
