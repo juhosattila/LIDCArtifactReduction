@@ -45,7 +45,7 @@ class PyronnParallelForwardprojectionRadonTransform(ForwardprojectionRadonTransf
     # @tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-        sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes batch_dimension
+        sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes channeldimension
         sinos_4D = tf.expand_dims(sinos_3D, axis=-1)
         return sinos_4D
 
@@ -57,7 +57,7 @@ class PyronnParallelBackprojectionRadonTransform(BackprojectionRadonTransform):
     #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
-        recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes batch_dimension
+        recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes channeldimension
         recos_4D = tf.expand_dims(recos_3D, axis=-1)
         return recos_4D
 
@@ -69,14 +69,14 @@ class PyronnParallelRadonTransform(RadonTransform):
     #@tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-        sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes batch_dimension
+        sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes channeldimension
         sinos_4D = tf.expand_dims(sinos_3D, axis=-1)
         return sinos_4D
 
     #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
-        recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes batch_dimension
+        recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes channeldimension
         recos_4D = tf.expand_dims(recos_3D, axis=-1)
         return recos_4D
 

@@ -74,7 +74,7 @@ def analyse(arrs, names=None):
         print("-------------------------")
 
         show_grey(arr)
-        plt.hist(arr)
+        plt.hist(np.squeeze(arr))
         plt.show()
 
     if names is None:
