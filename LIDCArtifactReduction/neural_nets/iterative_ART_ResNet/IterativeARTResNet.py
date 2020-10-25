@@ -33,7 +33,7 @@ class IterativeARTResNet(ModelInterface):
 
     imgs_input_name = 'imgs_input_layer'
     sinos_input_name = 'sinos_input_layer'
-    output_name = 'output_layer'
+    resnet_name = 'resnet_layer'
 
     def _build(self):
         volume_img_width = self._radon_geometry.volume_img_width
@@ -46,19 +46,22 @@ class IterativeARTResNet(ModelInterface):
         art_layer = ARTRadonLayer(radon_transformation=self._radon_transformation, name='ART_layer')\
                         ([imgs_input_layer, sinos_input_layer])
 
-        # If adding new options, then refactor and inject dependency.
+        # Refactor and inject dependency.
         kernel_model = ResidualUNetFewBatchNorms(volume_img_width=self._radon_geometry.volume_img_width,
-                                                conv_regularizer=self._conv_regularizer,
-                                                input_name='kernel_input',
-                                                output_name='kernel_output',
-                                                name=IterativeARTResNet.output_name)
+                                                 conv_regularizer=self._conv_regularizer,
+                                                 input_name='kernel_input',
+                                                 output_name='kernel_output',
+                                                 name=IterativeARTResNet.resnet_name,
+                                                 output_difference_layer=True,
+                                                 difference_name='kernel_difference')
 
-        output_layer = kernel_model(art_layer)
+        output_layer_or_layers = kernel_model(art_layer)
 
-        self._model = Model(inputs=[imgs_input_layer, sinos_input_layer], outputs=output_layer)
+        self._model = Model(inputs=[imgs_input_layer, sinos_input_layer], outputs=output_layer_or_layers)
+
         self._imgs_input_layer = imgs_input_layer
         self._sinos_input_layer = sinos_input_layer
-        self._output_layer = output_layer
+        self._output_layer = kernel_model.output_layer
         self._difference_layer = kernel_model.difference_layer
 
     @property

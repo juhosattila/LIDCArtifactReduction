@@ -14,9 +14,11 @@ class ResidualUNetFewBatchNorms(ResidualUNetAbstract):
     """
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
-                 name=None, input_name=None, output_name=None):
+                 name=None, input_name=None, output_name=None,
+                 output_difference_layer: bool = False, difference_name=None):
         super().__init__(volume_img_width, has_batch_norm, has_dropout, has_activation_after_upsampling,
-                         conv_regularizer=conv_regularizer, name=name, input_name=input_name, output_name=output_name)
+                         conv_regularizer=conv_regularizer, name=name, input_name=input_name, output_name=output_name,
+                         output_difference_layer=output_difference_layer, difference_name=difference_name)
 
     def _build_model(self):
         input_layer = self._input()
@@ -73,13 +75,13 @@ class ResidualUNetFewBatchNorms(ResidualUNetAbstract):
         u0 = self._conv_k3_activation(64)(u0)
         u0 = self._conv_k3_activation(64)(u0)
 
-        difference_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
-                            kernel_initializer=self._conv_layer_initalizer,
-                            kernel_regularizer=self._conv_layer_regualizer)(u0)
-
+        difference_layer = self._difference_layer(u0)
         output_layer = Add(name=self._output_name)([input_layer, difference_layer])
 
-        model = Model(inputs=input_layer, outputs=output_layer, name=self.name)
+        if self._output_difference_layer:
+            model = Model(inputs=input_layer, outputs=[output_layer, difference_layer], name=self.name)
+        else:
+            model = Model(inputs=input_layer, outputs=output_layer, name=self.name)
 
         self._model = model
         self._input_layer = input_layer

@@ -35,7 +35,8 @@ from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 class ResidualUNetAbstract(ModelInterface):
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
-                 name=None, input_name=None, output_name=None):
+                 name=None, input_name=None, output_name=None,
+                 output_difference_layer: bool = False, difference_name=None):
         """
         Args:
             conv_regularizer: either a  regularizer class or a number for weight of l2 reg
@@ -61,6 +62,8 @@ class ResidualUNetAbstract(ModelInterface):
 
         self._input_name = input_name or 'input_layer'
         self._output_name = output_name or 'output_layer'
+        self._difference_name = difference_name or 'difference_layer'
+        self._output_difference_layer = output_difference_layer
 
         self._model = None
         self._input_layer = None
@@ -88,13 +91,13 @@ class ResidualUNetAbstract(ModelInterface):
         if self._has_batch_norm:
             batch_norm_layer = BatchNormalization()
             self._batch_norm_layers.append(batch_norm_layer)
-            return lambda x : batch_norm_layer(x)
-        return lambda x : x
+            return lambda x: batch_norm_layer(x)
+        return lambda x: x
 
     def _conv_k3_activation_possible_batchnorm(self, filters: int):
         conv = self._conv_k3_activation(filters)
         possible_batch_norm = self._possible_batch_norm()
-        return lambda x : possible_batch_norm(conv(x))
+        return lambda x: possible_batch_norm(conv(x))
 
     def _max_pooling(self):
         return MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same')
@@ -117,6 +120,12 @@ class ResidualUNetAbstract(ModelInterface):
         func = lambda x: conv(upsampling(x))
         return func
 
+    def _difference_layer(self):
+        return Conv2D(filters=1, kernel_size=(1, 1), padding='same',
+                      kernel_initializer=self._conv_layer_initalizer,
+                      kernel_regularizer=self._conv_layer_regualizer,
+                      name=self._difference_name)
+
     @abstractmethod
     def _build_model(self):
         pass
@@ -138,7 +147,7 @@ class ResidualUNetAbstract(ModelInterface):
         """Returns output_layer - input_layer."""
         return self._difference_layer
 
-    def set_training(self, training : bool):
+    def set_training(self, training: bool):
         """Change needs recompiling."""
         self._set_training(training)
 

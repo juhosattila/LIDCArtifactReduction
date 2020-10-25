@@ -10,7 +10,7 @@ class ResidualUNetManyBatchNorms(ResidualUNetAbstract):
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, there is No dropout and activation after upsampling.
     """
-
+    # TODO: if needed, add possibility, to make difference_layer to outputs.
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
                  name=None, input_name=None, output_name=None):
