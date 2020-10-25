@@ -38,7 +38,7 @@ import tensorflow as tf
 #                                                detector_spacing=np.broadcast_to(geometry.detector_spacing, [batch, *np.shape(geometry.detector_spacing)]),
 #                                                ray_vectors=np.broadcast_to(geometry.ray_vectors, [batch, *np.shape(geometry.ray_vectors)]))
 
-
+# Changed everything to tensorflow.
 # parallel_projection2d
 #@tf.function
 def parallel_projection2d(volume, geometry):
@@ -75,6 +75,25 @@ def _project_grad(op, grad):
         ray_vectors=op.inputs[6],
     )
     return [reco, tf.stop_gradient(op.inputs[1]), tf.stop_gradient(op.inputs[2]), tf.stop_gradient(op.inputs[3]), tf.stop_gradient(op.inputs[4]), tf.stop_gradient(op.inputs[5]), tf.stop_gradient(op.inputs[6])]
+
+
+# # Changes rank of output reconstruction. This is needed, unless change is made to forward projection method in radon_transformation_pyronn.py.
+# #
+# @ops.RegisterGradient("ParallelProjection2D")
+# def _project_grad(op, grad):
+#     '''
+#         Compute the gradient of the projection op by invoking the backprojector.
+#     '''
+#     reco = pyronn_layers.parallel_backprojection2d(
+#         sinogram=grad,
+#         volume_shape=op.inputs[0].shape[1:],
+#         volume_origin=op.inputs[2],
+#         detector_origin=op.inputs[3],
+#         volume_spacing=op.inputs[4],
+#         detector_spacing=op.inputs[5],
+#         ray_vectors=op.inputs[6],
+#     )
+#     return [tf.expand_dims(reco, axis=-1), tf.stop_gradient(op.inputs[1]), tf.stop_gradient(op.inputs[2]), tf.stop_gradient(op.inputs[3]), tf.stop_gradient(op.inputs[4]), tf.stop_gradient(op.inputs[5]), tf.stop_gradient(op.inputs[6])]
 
 
 # fan_projection2d
