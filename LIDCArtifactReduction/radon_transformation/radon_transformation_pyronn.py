@@ -3,8 +3,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow_addons.utils.types import TensorLike
 
-from pyronn.ct_reconstruction.layers.projection_2d import parallel_projection2d
-from pyronn.ct_reconstruction.layers.backprojection_2d import parallel_backprojection2d
+# from pyronn.ct_reconstruction.layers.projection_2d import parallel_projection2d
+# from pyronn.ct_reconstruction.layers.backprojection_2d import parallel_backprojection2d
+from LIDCArtifactReduction.radon_transformation.pyronn_wrapper import *
 from pyronn.ct_reconstruction.geometry.geometry_parallel_2d import GeometryParallel2D
 from pyronn.ct_reconstruction.helpers.trajectories import circular_trajectory
 from pyronn.ct_reconstruction.helpers.filters import filters
