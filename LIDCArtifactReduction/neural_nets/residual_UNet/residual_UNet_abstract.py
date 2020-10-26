@@ -120,7 +120,7 @@ class ResidualUNetAbstract(ModelInterface):
         func = lambda x: conv(upsampling(x))
         return func
 
-    def _difference_layer(self):
+    def get_difference_layer(self):
         return Conv2D(filters=1, kernel_size=(1, 1), padding='same',
                       kernel_initializer=self._conv_layer_initalizer,
                       kernel_regularizer=self._conv_layer_regualizer,

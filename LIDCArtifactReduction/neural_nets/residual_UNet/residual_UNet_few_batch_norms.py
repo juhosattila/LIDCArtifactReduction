@@ -75,7 +75,7 @@ class ResidualUNetFewBatchNorms(ResidualUNetAbstract):
         u0 = self._conv_k3_activation(64)(u0)
         u0 = self._conv_k3_activation(64)(u0)
 
-        difference_layer = self._difference_layer(u0)
+        difference_layer = self.get_difference_layer()(u0)
         output_layer = Add(name=self._output_name)([input_layer, difference_layer])
 
         if self._output_difference_layer:

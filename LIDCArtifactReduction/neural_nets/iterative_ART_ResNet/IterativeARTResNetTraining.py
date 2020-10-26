@@ -22,8 +22,7 @@ class IterativeARTResNetTraining(ModelInterface):
     def _build(self):
         target_imgs_input_layer = self._target_model.imgs_input_layer
         target_sinos_input_layer = self._target_model.sinos_input_layer
-        target_imgs_output_layer = self._target_model.output_layer
-        target_difference_layer = self._target_model.difference_layer
+        target_imgs_output_layer, target_difference_layer = self._target_model.output_layer_or_layers
 
         radon_layer = ForwardRadonLayer(radon_transformation=self._radon_transformation,
                                         name=IterativeARTResNetTraining.sinos_output_name)\

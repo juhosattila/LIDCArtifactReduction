@@ -18,7 +18,7 @@ class IterativeARTResNet(ModelInterface):
         super().__init__(name=name)
         self._radon_geometry = radon_geometry
 
-        # If adding new options, then refactor and inject dependency.
+        # TODO: If adding new options, then refactor and inject dependency.
         self._conv_regularizer = 1e-4
         # Should be set based on geometry.
         alfa = 0.5 / 256
@@ -27,8 +27,8 @@ class IterativeARTResNet(ModelInterface):
         self._model = None
         self._imgs_input_layer = None
         self._sinos_input_layer = None
-        self._output_layer = None
-        self._difference_layer = None
+        self._output_layer_or_layers = None
+        
         self._build()
 
     imgs_input_name = 'imgs_input_layer'
@@ -46,7 +46,7 @@ class IterativeARTResNet(ModelInterface):
         art_layer = ARTRadonLayer(radon_transformation=self._radon_transformation, name='ART_layer')\
                         ([imgs_input_layer, sinos_input_layer])
 
-        # Refactor and inject dependency.
+        # TODO: Refactor and inject dependency.
         kernel_model = ResidualUNetFewBatchNorms(volume_img_width=self._radon_geometry.volume_img_width,
                                                  conv_regularizer=self._conv_regularizer,
                                                  input_name='kernel_input',
@@ -55,14 +55,14 @@ class IterativeARTResNet(ModelInterface):
                                                  output_difference_layer=True,
                                                  difference_name='kernel_difference')
 
-        output_layer_or_layers = kernel_model(art_layer)
 
+        output_layer_or_layers = kernel_model(art_layer)
         self._model = Model(inputs=[imgs_input_layer, sinos_input_layer], outputs=output_layer_or_layers)
 
         self._imgs_input_layer = imgs_input_layer
         self._sinos_input_layer = sinos_input_layer
-        self._output_layer = kernel_model.output_layer
-        self._difference_layer = kernel_model.difference_layer
+        self._output_layer_or_layers = output_layer_or_layers
+
 
     @property
     def imgs_input_layer(self):
@@ -73,13 +73,8 @@ class IterativeARTResNet(ModelInterface):
         return self._sinos_input_layer
 
     @property
-    def output_layer(self):
-        return self._output_layer
-
-    @property
-    def difference_layer(self):
-        """Returns output_layer - input_layer."""
-        return self._difference_layer
+    def output_layer_or_layers(self):
+        return self._output_layer_or_layers
 
     def compile(self):
         raise NotImplementedError()
