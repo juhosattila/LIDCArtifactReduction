@@ -1,5 +1,5 @@
 import numpy as np
-
+import tensorflow as tf
 from LIDCArtifactReduction.generator.generator_transform import LIDCGeneratorNoisyTransform
 from LIDCArtifactReduction.math_helpers.tensorflow_math_mixin import TensorflowMathMixin
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
@@ -16,8 +16,15 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
                          test_mode=test_mode)
 
     def transform(self, reconstructions, sinograms):
-        # TODO: implement
-        raise NotImplementedError()
+        reconstructions_tf = tf.convert_to_tensor(reconstructions, dtype=tf.float32)
+        actual_reconstructions_tf = tf.zeros_like(reconstructions_tf, dtype=tf.float32)
+        bad_sinograms_tf = tf.convert_to_tensor(sinograms, dtype=tf.float32)
+        bad_sinograms_tf = self.generate_sinogram_noise(bad_sinograms_tf) \
+                            if self._add_noise else bad_sinograms_tf
+        return self._output_data_formatter(
+            actual_reconstructions=actual_reconstructions_tf,
+            bad_sinograms=bad_sinograms_tf,
+            good_reconstructions=reconstructions_tf)
 
     def _output_data_formatter(self, actual_reconstructions, bad_sinograms, good_reconstructions):
         return {IterativeARTResNet.imgs_input_name : actual_reconstructions,

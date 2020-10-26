@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError
+from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters
 from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssim_tf, mean_absolute_error_tf
@@ -7,6 +7,14 @@ from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssim_tf, mean_absolut
 
 class HU_RMSE(RootMeanSquaredError):
     def __init__(self, name='HU_RMSE', dtype=None):
+        super().__init__(name, dtype=dtype)
+
+    def result(self):
+        return scale_Radio2HU(super().result())
+
+
+class HU_MAE(MeanAbsoluteError):
+    def __init__(self, name='HU_MAE', dtype=None):
         super().__init__(name, dtype=dtype)
 
     def result(self):
@@ -37,6 +45,14 @@ class SSIM(Metric):
 
     def reset_states(self):
         self._mean.reset_states()
+
+
+class MeanSquare(Mean):
+    def __init__(self, name='mean_square', dtype=None):
+        super().__init__(name, dtype=dtype)
+
+    def update_state(self, values, sample_weight=None):
+        return super().update_state(values=tf.reduce_mean(tf.square(values)), sample_weight=sample_weight)
 
 
 # TODO: refactor. Problem with dimensions. I do not know yet.
