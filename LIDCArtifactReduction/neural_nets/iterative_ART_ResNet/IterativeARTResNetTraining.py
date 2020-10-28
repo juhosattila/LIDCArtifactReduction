@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
+from tensorflow.keras.utils import Progbar
 
 from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
@@ -38,7 +39,8 @@ class IterativeARTResNetTraining(ModelInterface):
 
         self._model = IterativeARTResNetTraningCustomTrainStepModel(
                         inputs=[target_imgs_input_layer, target_sinos_input_layer],
-                        outputs=[target_imgs_output_layer, radon_layer])
+                        outputs=[target_imgs_output_layer, radon_layer],
+                        name=self._target_model.name)
 
     # TODO: provide meaningful defaults
     def compile(self, lr, reconstructions_output_weight, error_singrom_weight, gradient_weight):
@@ -117,7 +119,9 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         self._custom_loss: IterativeARTRestNetTrainingLoss = custom_loss
         self._all_metrics = None
 
-
+    # In case of overriding only train_step, tf.function is not needed.
+    # TODO: Toggle for speed.
+    #@tf.function
     def train_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
@@ -150,11 +154,30 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         for m in self._metrics_gradient:
             m.update_state(doutput_dinput)
 
+        return [(m.name, m.result()) for m in self.metrics]
+
         # If you had compiled metrics.
         # self.compiled_metrics.update_state(good_reconstructions, reconstructions_output)
 
-        # Return a dict mapping metric names to current value
-        return {m.name: m.result() for m in self.metrics}
+        # For overriding train_step in Tf>=2.2 return a dict mapping metric names to current value
+        #return {m.name: m.result() for m in self.metrics}
+
+    def train(self, iterator, epochs, steps_per_epoch):
+        print(f"Training network {self.name}.")
+        for epoch in range(epochs):
+            print(f"Epoch {epoch}:")
+            progbar = Progbar(steps_per_epoch, verbose=1, stateful_metrics=[m.name for m in self.metrics])
+            for step in range(1, steps_per_epoch+1):
+                data = next(iterator)
+                metric_results = self.train_step(data)
+
+                if step % 1 == 0:
+                    progbar.update(step, values=metric_results)
+
+        # Possible validation could be added here.
+
+
+
 
     # TODO: if necessary, use, otherwise delete. predict_step overriden
     # def predict_step(self, data):
