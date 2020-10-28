@@ -25,8 +25,8 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         self._add_noise = add_noise
         self._test_mode = test_mode
 
-        self.lnI0 = lnI0
-        self.sum_scaling = sum_scaling
+        self.lnI0 = self.as_array(lnI0)
+        self.sum_scaling = self.as_array(sum_scaling)
 
         self._analysed = False
 
@@ -44,16 +44,18 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         alfa = 0.3
 
         # deviation of noise
-        sigma_I0 = alfa * self.exp(self.lnI0 - 1.0 / scale * pmax)
+        sigma_I0 = self.as_array(alfa * self.exp(self.lnI0 - 1.0 / scale * pmax))
 
         I_normal_noise = self.random_normal(mean=0.0, stddev=sigma_I0, size=self.shape(sino))
         lnI = self.lnI0 - 1.0 / scale * sino
         I_no_noise = self.exp(lnI)
+
         I_added_noise = I_no_noise + I_normal_noise
 
         # some elements might be too low
-        too_low = I_added_noise < I_no_noise / 2.0
-        I_added_noise[too_low] = I_no_noise[too_low]
+        # too_low = I_added_noise < I_no_noise / 2.0
+        # I_added_noise[too_low] = I_no_noise[too_low]
+        I_added_noise = self.where(I_added_noise < I_no_noise / 2.0, I_no_noise, I_added_noise)
 
         I_Poisson = self.random_poisson(I_added_noise)
 

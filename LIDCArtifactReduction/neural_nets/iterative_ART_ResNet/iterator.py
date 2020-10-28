@@ -1,7 +1,7 @@
 from typing import List
 
+from tensorflow import Tensor
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
-from tensorflow_core import Tensor
 
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import output_data_formatter
 
@@ -29,5 +29,5 @@ class RecSinoSuperIterator(KerasImgIterator):
         super().__init__(len(iterators), batch_size=1, shuffle=True, seed=None)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        idx = index_array
+        idx = index_array[0]
         return next(self._iterators[idx])

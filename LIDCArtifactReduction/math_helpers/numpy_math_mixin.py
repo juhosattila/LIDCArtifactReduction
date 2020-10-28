@@ -18,3 +18,9 @@ class NumpyMathMixin(MathMixin):
 
     def random_poisson(self, mean):
         return np.random.poisson(mean)
+
+    def as_array(self, x):
+        return np.asarray(x, dtype=np.float32)
+
+    def where(self, condition, x, y):
+        return np.where(condition, x, y)

@@ -21,3 +21,11 @@ class MathMixin:
     @abstractmethod
     def random_poisson(self, mean):
         pass
+
+    @abstractmethod
+    def as_array(self, x):
+        pass
+
+    @abstractmethod
+    def where(self, condition, x, y):
+        pass

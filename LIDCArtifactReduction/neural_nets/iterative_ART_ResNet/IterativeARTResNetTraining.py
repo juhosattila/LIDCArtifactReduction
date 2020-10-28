@@ -108,7 +108,7 @@ class IterativeARTResNetTraining(ModelInterface):
             super_iterator = RecSinoSuperIterator(iterators)
 
             # TODO: checkpointer is needed to save weights
-            self._model.fit(super_iterator, epochs=1, steps_per_epoch=len(iterators) * steps_per_epoch)
+            self._model.fit(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch)
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):
@@ -130,6 +130,7 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                 reconstructions_output, errors_sinogram = self(inputs, training=True)
                 # TODO: derivative wrt input or art output?
             doutput_dinput = tape2.gradient(reconstructions_output, actual_reconstructions)
+            # doutput_dinput = [grad if grad is not None else tf.zeros_like(var) for grad, var in zip(doutput_dinput, actual_reconstructions)]
 
             lossvalue = self._custom_loss(
                             reconstructions_output=reconstructions_output,

@@ -17,4 +17,11 @@ class TensorflowMathMixin(MathMixin):
         return tf.random.normal(size, mean, stddev, dtype=tf.float32)
 
     def random_poisson(self, mean):
-        return tf.random.poisson([], mean, dtype=tf.float32)
+        mean_tf = tf.convert_to_tensor(mean, dtype=tf.float32)
+        return tf.random.poisson([], mean_tf, dtype=tf.float32)
+
+    def as_array(self, x):
+        return tf.cast(tf.convert_to_tensor(x), dtype=tf.float32)
+
+    def where(self, condition, x, y):
+        return tf.where(condition, x, y)
