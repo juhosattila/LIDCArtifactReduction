@@ -110,7 +110,7 @@ class IterativeARTResNetTraining(ModelInterface):
             super_iterator = RecSinoSuperIterator(iterators)
 
             # TODO: checkpointer is needed to save weights
-            self._model.fit(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch)
+            self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch)
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):
@@ -128,7 +128,7 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 
         with tf.GradientTape() as tape1:
-            with tf.GradientTape() as tape2:
+            with tf.GradientTape(watch_accessed_variables=False) as tape2:
                 tape2.watch(actual_reconstructions)
                 #reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
                 reconstructions_output, errors_sinogram = self(inputs, training=True)

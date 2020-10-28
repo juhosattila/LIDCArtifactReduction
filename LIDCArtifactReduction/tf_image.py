@@ -282,3 +282,7 @@ def mean_absolute_error_tf(imgs1, imgs2):
     imgs1_tf = tf.convert_to_tensor(imgs1)
     imgs2_tf = tf.convert_to_tensor(imgs2)
     return tf.reduce_mean(tf.abs(imgs1_tf-imgs2_tf))
+
+
+def shape_to_3D(imgs):
+    return tf.reshape(imgs, shape=tf.shape(imgs)[:3])

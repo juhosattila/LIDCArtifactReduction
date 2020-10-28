@@ -91,6 +91,8 @@ class ResidualUNetAbstract(ModelInterface):
 
     def _resize_conv(self, filters: int):
         # TODO: in upsampling what interpolation technique to use
+        # Difference between the performances of transposed convolution and upsampling + conv are discussed here:
+        #   https://distill.pub/2016/deconv-checkerboard/
         upsampling = UpSampling2D(size=(2, 2), interpolation='nearest')
         activation = 'relu' if self._has_activation_after_upsampling else 'linear'
         conv = Conv2D(filters=filters, kernel_size=(2, 2), padding='same',

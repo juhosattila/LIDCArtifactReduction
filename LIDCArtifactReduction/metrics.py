@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters
-from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssim_tf, mean_absolute_error_tf
+from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssim_tf, mean_absolute_error_tf, shape_to_3D
 
 
 class HU_RMSE(RootMeanSquaredError):
@@ -65,8 +65,7 @@ class RelativeError(Metric):
         self._mean = Mean(dtype=dtype)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        # TODO: make it work for NHW apart from NHWC
-        rel_error = tf.norm(y_true - y_pred, axis=[-3, -2, -1]) / tf.norm(y_true, axis=[-3, -2, -1])
+        rel_error = tf.norm(shape_to_3D(y_true - y_pred), axis=[-2, -1]) / tf.norm(shape_to_3D(y_true), axis=[-2, -1])
         self._mean.update_state(values=rel_error)
 
     def result(self):
