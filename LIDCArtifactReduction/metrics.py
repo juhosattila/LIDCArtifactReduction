@@ -52,7 +52,28 @@ class MeanSquare(Mean):
         super().__init__(name, dtype=dtype)
 
     def update_state(self, values, sample_weight=None):
-        return super().update_state(values=tf.reduce_mean(tf.square(values)), sample_weight=sample_weight)
+        # TODO: find out the dimension of gradients and specify axis.
+        # Make it work for different batchsizes in NHWC.
+        # Otherwise its ok because batch-es have fixed size.
+        update_values = tf.reduce_mean(tf.square(values))#, axis=[])
+        return super().update_state(values=update_values, sample_weight=sample_weight)
+
+
+class RelativeError(Metric):
+    def __init__(self, name='rel_error', dtype=None):
+        super().__init__(name, dtype=dtype)
+        self._mean = Mean(dtype=dtype)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        # TODO: make it work for NHW apart from NHWC
+        rel_error = tf.norm(y_true - y_pred, axis=[-3, -2, -1]) / tf.norm(y_true, axis=[-3, -2, -1])
+        self._mean.update_state(values=rel_error)
+
+    def result(self):
+        return self._mean.result()
+
+    def reset_states(self):
+        self._mean.reset_states()
 
 
 # TODO: refactor. Problem with dimensions. I do not know yet.

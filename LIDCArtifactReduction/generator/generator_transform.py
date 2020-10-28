@@ -4,7 +4,6 @@ from LIDCArtifactReduction import parameters, utility
 
 from LIDCArtifactReduction.math_helpers.math_mixin import MathMixin
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
-from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import RadonTransform
 
 
 class LIDCGeneratorTransform:
@@ -14,7 +13,7 @@ class LIDCGeneratorTransform:
 
 
 class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
-    def __init__(self, geometry: RadonGeometry, radon_transform: RadonTransform,
+    def __init__(self, geometry: RadonGeometry,
                  add_noise: bool, lnI0, sum_scaling, test_mode: bool):
         """
         lnI0 and sum_scaling should changed together. For example:
@@ -22,7 +21,7 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         sum_scaling = 5.0
         """
         self._geometry = geometry
-        self._radon_transform = radon_transform
+
         self._add_noise = add_noise
         self._test_mode = test_mode
 

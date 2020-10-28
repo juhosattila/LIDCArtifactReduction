@@ -15,24 +15,8 @@ class ForwardRadonLayer(Layer):
     def call(self, inputs, **kwargs):
         return self._radon_transformation.forwardproject(inputs)
 
-    # def build(self, input_shape):
-    #     """We assume that H=W and C=1, if there is a channel dimension."""
-    #     if input_shape[1] != input_shape[2] or \
-    #             np.size(input_shape) == 3 and input_shape[3] != 1:
-    #         raise ValueError("Input shape is assumed H=W and C=1, if there is a channel dimension\n"
-    #                          "Class ParallelRadonLayer works with squared images.\n"
-    #                          f"Error occured in layer {self.name}. Received: {input_shape}.")
-    #
-    #     super().build(input_shape)
-    #     self._img_side_length = input_shape[1]
-    #     self._set_projection_width()
-    #     self._radon_transformation = ForwardprojectionParallelRadonTransform(self._img_side_length, self._radon_geometry)
 
-    # def _set_projection_width(self):
-    #     if self._radon_params.projection_width is None:
-    #         self._radon_params.projection_width = self._img_side_length
-
-    # TODO: if serialization is not necessary, just delete
+    # # Sample for serialization.
     # def get_config(self):
     #     config = super().get_config()
     #     config.update({'params': self._radon_transformation.toJson()})
@@ -41,8 +25,7 @@ class ForwardRadonLayer(Layer):
     def get_config(self):
         raise NotImplementedError()
 
-    #
-    # # TODO: not tested, if it works
+    # # Sample for deserialisation. To be tested.
     # @classmethod
     # def from_config(cls, config):
     #     radon_params = RadonGeometry.fromJson(config['params'])

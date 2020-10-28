@@ -14,15 +14,15 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn impo
 
 class IterativeARTResNet(ModelInterface):
 
-    def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ARTRadonTransform = None, name=None):
+    def __init__(self, radon_geometry: RadonGeometry,
+                 radon_transformation: ARTRadonTransform = None,
+                 name=None):
         super().__init__(name=name)
         self._radon_geometry = radon_geometry
 
         # TODO: If adding new options, then refactor and inject dependency.
         self._conv_regularizer = 1e-4
-        # Should be set based on geometry.
-        alfa = 0.5 / 256
-        self._radon_transformation = radon_transformation or PyronnParallelARTRadonTransform(self._radon_geometry, alfa=alfa)
+        self._radon_transformation = radon_transformation or PyronnParallelARTRadonTransform(self._radon_geometry)
 
         self._model = None
         self._imgs_input_layer = None

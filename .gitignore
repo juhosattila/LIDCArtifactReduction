@@ -6,8 +6,9 @@
 # Relevant python files.
 !LIDCArtifactReduction/**/*.py
 !sample_preprocess.py
-!sample_train.py
+!sample_FBPPostprocessing_train.py
 !sample_predict.py
+!sample_Iterative_train.py
 
 # External package
 !pyronn/**

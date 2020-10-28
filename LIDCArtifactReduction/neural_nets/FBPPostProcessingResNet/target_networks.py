@@ -25,7 +25,7 @@ class DCAR_TargetInterface(ModelInterface):
     input_name = 'input_layer'
     reconstruction_output_name = 'reconstruction_output_layer'
 
-# TODO: decide whether dropout and batchnorm are necessary
+
 class DCAR_UNet_FewBatchNorms(ResidualUNetFewBatchNorms, DCAR_TargetInterface):
     def __init__(self, radon_geometry: RadonGeometry, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None, name=None):

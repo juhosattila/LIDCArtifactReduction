@@ -11,9 +11,10 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
     def __init__(self, geometry: RadonGeometry, radon_transform: RadonTransform,
                  add_noise: bool, lnI0=5 * np.log(10), sum_scaling=5.0,
                  test_mode: bool = False):
-        super().__init__(geometry=geometry, radon_transform=radon_transform,
+        super().__init__(geometry=geometry,
                          add_noise=add_noise, lnI0=lnI0, sum_scaling=sum_scaling,
                          test_mode=test_mode)
+        self._radon_transform = radon_transform
 
     def transform(self, reconstructions, sinograms):
 
@@ -25,7 +26,7 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
 
         return self._output_format_manager(bad_reconstructions, reconstructions, sinograms)
 
-    # TODO: probably should be provided directly by network
+    # Task: probably should be provided directly by network. Similarly in all other spots.
     def _output_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms):
         # TODO: if upgraded to TF 2.2 remove [None]
         # These 'None'-s correspond to weights attached to the outputs.

@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Conv2D, \
 from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_abstract import ResidualUNetAbstract
 
 
-# TODO: decide whether dropout and batchnorm are necessary
+# Task: decide whether dropout and batchnorm are necessary
 class ResidualUNetFewBatchNorms(ResidualUNetAbstract):
     """Defaults are made with some changes based on the article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).

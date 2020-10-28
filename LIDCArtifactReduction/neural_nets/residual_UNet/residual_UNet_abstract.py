@@ -11,27 +11,6 @@ from tensorflow.keras.losses import MeanSquaredError
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 
 
-# TODO: delete
-# class DCAR_TargetInterface(ModelInterface):
-#     @property
-#     @abstractmethod
-#     def input_shape(self):
-#         pass
-#
-#     @property
-#     @abstractmethod
-#     def input_layer(self):
-#         pass
-#
-#     @property
-#     @abstractmethod
-#     def output_layer(self):
-#         pass
-#
-#     input_name = 'input_layer'
-#     reconstruction_output_name = 'reconstruction_output_layer'
-
-
 class ResidualUNetAbstract(ModelInterface):
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,

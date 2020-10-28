@@ -103,9 +103,16 @@ class PyronnParallelRadonTransform(RadonTransform):
 
 
 class PyronnParallelARTRadonTransform(PyronnParallelRadonTransform, ARTRadonTransform):
-    def __init__(self, radon_geometry: RadonGeometry, alfa):
+    def __init__(self, radon_geometry: RadonGeometry, alfa=0.5 / 256):
+        """
+        Args:
+            alfa: should be set based on geometry. 256 has nothing to do with radon_geometry.projection_width.
+                Probably more with radon_geometry.volume_img_width. Should be tested.
+        """
         PyronnParallelRadonTransform.__init__(self, radon_geometry=radon_geometry)
         ARTRadonTransform.__init__(self, tf.convert_to_tensor(alfa, dtype=tf.float32))
 
+    # TODO: uncomment if speed is needed
+    #@tf.function
     def ART_step(self, imgs: TensorLike, sinos: TensorLike):
         return imgs + self.alfa * self.backproject(sinos - self.forwardproject(imgs))

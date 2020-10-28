@@ -85,4 +85,3 @@ class ModelInterface:
 
         self._model.load_weights(file)
         return self
-
