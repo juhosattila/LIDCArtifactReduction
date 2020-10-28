@@ -8,6 +8,7 @@ from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss import \
     IterativeARTRestNetTrainingLoss, RecSinoGradientLoss
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import input_data_decoder
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.iterator import RecSinoSuperIterator, RecSinoArrayIterator
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
@@ -56,8 +57,7 @@ class IterativeARTResNetTraining(ModelInterface):
     # Toggle, if performance needed.
     #@tf.function
     def predict_depth_generator_step(self, data_batch):
-        actual_reconstructions, bad_sinograms, good_reconstructions = \
-            IterativeARTResNetTraningCustomTrainStepModel.input_data_decoder(data_batch)
+        actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 
@@ -117,21 +117,9 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         self._custom_loss: IterativeARTRestNetTrainingLoss = custom_loss
         self._all_metrics = None
 
-    @staticmethod
-    def output_data_formatter(actual_reconstructions, bad_sinograms, good_reconstructions):
-        return {IterativeARTResNet.imgs_input_name : actual_reconstructions,
-                IterativeARTResNet.sinos_input_name: bad_sinograms,
-                IterativeARTResNet.resnet_name: good_reconstructions}
-
-    @staticmethod
-    def input_data_decoder(data):
-        return data[IterativeARTResNet.imgs_input_name], \
-               data[IterativeARTResNet.sinos_input_name], \
-               data[IterativeARTResNet.resnet_name]
 
     def train_step(self, data):
-        actual_reconstructions, bad_sinograms, good_reconstructions = \
-            IterativeARTResNetTraningCustomTrainStepModel.input_data_decoder(data)
+        actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 

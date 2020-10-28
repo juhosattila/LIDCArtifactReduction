@@ -3,8 +3,7 @@ from typing import List
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 from tensorflow_core import Tensor
 
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTraining import \
-    IterativeARTResNetTraningCustomTrainStepModel
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import output_data_formatter
 
 
 class RecSinoArrayIterator(KerasImgIterator):
@@ -17,7 +16,7 @@ class RecSinoArrayIterator(KerasImgIterator):
 
     def _get_batches_of_transformed_samples(self, index_array):
         idx = index_array
-        return IterativeARTResNetTraningCustomTrainStepModel.output_data_formatter(
+        return output_data_formatter(
             actual_reconstructions=self._actual_reconstructions_batches[idx],
             bad_sinograms=self._sinograms_batches[idx],
             good_reconstructions=self._good_reconstructions_batches[idx]

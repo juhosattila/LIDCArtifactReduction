@@ -2,9 +2,7 @@ import numpy as np
 import tensorflow as tf
 from LIDCArtifactReduction.generator.generator_transform import LIDCGeneratorNoisyTransform
 from LIDCArtifactReduction.math_helpers.tensorflow_math_mixin import TensorflowMathMixin
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTraining import \
-    IterativeARTResNetTraningCustomTrainStepModel
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import output_data_formatter
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ARTRadonTransform
 
@@ -30,7 +28,7 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
         for i in range(self._mode):
             actual_reconstructions_tf = self._radon_transform.ART_step(actual_reconstructions_tf, bad_sinograms_tf)
 
-        return IterativeARTResNetTraningCustomTrainStepModel.output_data_formatter(
+        return output_data_formatter(
             actual_reconstructions=actual_reconstructions_tf,
             bad_sinograms=bad_sinograms_tf,
             good_reconstructions=reconstructions_tf)
