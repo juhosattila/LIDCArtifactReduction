@@ -103,7 +103,7 @@ class ResidualUNetAbstract(ModelInterface):
 
     def _trans_conv(self, filters: int):
         activation = 'relu' if self._has_activation_after_upsampling else 'linear'
-        return Conv2DTranspose(filters, kernel_size=(2,2), padding='same',
+        return Conv2DTranspose(filters, kernel_size=(2,2), padding='same', strides=(2,2),
                         activation=activation, kernel_initializer=self._conv_layer_initalizer,
                         kernel_regularizer=self._conv_layer_regualizer)
 

@@ -15,7 +15,7 @@ class RecSinoArrayIterator(KerasImgIterator):
         self._good_reconstructions_batches = good_reconstructions_batches
 
     def _get_batches_of_transformed_samples(self, index_array):
-        idx = index_array
+        idx = index_array[0]
         return output_data_formatter(
             actual_reconstructions=self._actual_reconstructions_batches[idx],
             bad_sinograms=self._sinograms_batches[idx],

@@ -21,7 +21,7 @@ ds = DirectorySystem(geometry, data_name='pyronn', algorithm_name='iter')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
 generator = LIDCDataGenerator(array_stream=array_stream, load_data_config='config20201028-031556', verbose=True,
-                            validation_split=0.1, test_split=0.1, batch_size=4)
+                            validation_split=0.1, test_split=0.1, batch_size=8)
 # For noisy transformations you may set lnI0 and sumscaling.
 noisy_transformer = IterativeARTResNetGeneratorTransform(geometry, radon_transform, add_noise=True
                                                          )#mode=4, #, lnI0=10*np.log(4), sum_scaling=5.0)
@@ -44,4 +44,4 @@ training_network.compile(
     reconstructions_output_weight=1.0,
     error_singrom_weight=1.0 / (1.0 * geometry.volume_img_width),
     gradient_weight=1.0)
-training_network.train(train_iterator, final_depth=5, steps_per_epoch=100)
+training_network.train(train_iterator, final_depth=5, steps_per_epoch=50)
