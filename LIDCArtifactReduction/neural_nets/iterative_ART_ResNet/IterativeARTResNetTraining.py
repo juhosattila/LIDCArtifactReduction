@@ -56,8 +56,8 @@ class IterativeARTResNetTraining(ModelInterface):
 
 
 
-    # Toggle, if performance needed.
-    #@tf.function
+    # TODO: Toggle, if performance needed.
+    @tf.function
     def predict_depth_generator_step(self, data_batch):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
@@ -68,12 +68,15 @@ class IterativeARTResNetTraining(ModelInterface):
         return reconstructions_output, bad_sinograms, good_reconstructions
 
 
-    def predict_depth_generator(self, data_iterator, depth, steps):
+    def predict_depth_generator(self, data_iterator, depth, steps, progbar: Progbar=None):
         """
         Args:
             data_iterator: should provide data in the form of a dict containing keys
                 IterativeARTResNet.imgs_input_name and IterativeARTResNet.sinos_input_name
         """
+        if progbar is not None:
+            progbar.add(1)
+
         if depth == 0:
             return data_iterator
 
@@ -100,12 +103,24 @@ class IterativeARTResNetTraining(ModelInterface):
         Args:
             final_depth: the depth the system should be trained to reach. Should be at least 1.
         """
+
+        print("---------------------------------")
+        print("--- Training to final level {}----".format(final_depth))
+        print("---------------------------------")
+
         # What capability level is taught now.
         for actual_depth in range(1, final_depth+1):  # actual depth <= final_depth
+            print("---------------------------------")
+            print("--- Training to actual level {}---".format(actual_depth))
+            print("--- Starting data preparation ---")
+
             # Data needs to be generated for each sublevel.
             iterators = []
             for data_level in range(actual_depth):
-                iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch))
+                print("---Data level {}---".format(data_level))
+                progbar = Progbar(data_level)
+                iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
+                                                              progbar=progbar))
 
             super_iterator = RecSinoSuperIterator(iterators)
 
@@ -119,9 +134,10 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         self._custom_loss: IterativeARTRestNetTrainingLoss = custom_loss
         self._all_metrics = None
 
+
     # In case of overriding only train_step, tf.function is not needed.
-    # TODO: Toggle for speed.
-    #@tf.function
+    # TODO: Toggle for debugging or speed.
+    @tf.function
     def train_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
