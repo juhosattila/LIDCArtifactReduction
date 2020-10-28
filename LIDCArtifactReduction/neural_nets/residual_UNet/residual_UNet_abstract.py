@@ -3,7 +3,7 @@ from abc import abstractmethod
 import numbers
 
 from tensorflow.keras.layers import Input, Conv2D, \
-    BatchNormalization, MaxPooling2D, Dropout, UpSampling2D
+    BatchNormalization, MaxPooling2D, Dropout, UpSampling2D, Conv2DTranspose
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
@@ -100,6 +100,12 @@ class ResidualUNetAbstract(ModelInterface):
                       kernel_regularizer=self._conv_layer_regualizer)
         func = lambda x: conv(upsampling(x))
         return func
+
+    def _trans_conv(self, filters: int):
+        activation = 'relu' if self._has_activation_after_upsampling else 'linear'
+        return Conv2DTranspose(filters, kernel_size=(2,2), padding='same',
+                        activation=activation, kernel_initializer=self._conv_layer_initalizer,
+                        kernel_regularizer=self._conv_layer_regualizer)
 
     def get_difference_layer(self):
         return Conv2D(filters=1, kernel_size=(1, 1), padding='same',

@@ -7,6 +7,7 @@ from tensorflow.keras import Model
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.radon_layer import ARTRadonLayer
 from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_few_batch_norms import ResidualUNetFewBatchNorms
+from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_few_BNs_transconv import ResidualUNetFewBNsTransConv
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ARTRadonTransform
 from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn import PyronnParallelARTRadonTransform
@@ -47,13 +48,14 @@ class IterativeARTResNet(ModelInterface):
                         ([imgs_input_layer, sinos_input_layer])
 
         # TODO: Refactor and inject dependency.
-        kernel_model = ResidualUNetFewBatchNorms(volume_img_width=self._radon_geometry.volume_img_width,
-                                                 conv_regularizer=self._conv_regularizer,
-                                                 input_name='kernel_input',
-                                                 output_name='kernel_output',
-                                                 name=IterativeARTResNet.resnet_name,
-                                                 output_difference_layer=True,
-                                                 difference_name='kernel_difference')
+        kernel_model = ResidualUNetFewBNsTransConv\
+            (volume_img_width=self._radon_geometry.volume_img_width,
+             conv_regularizer=self._conv_regularizer,
+             input_name='kernel_input',
+             output_name='kernel_output',
+             name=IterativeARTResNet.resnet_name,
+             output_difference_layer=True,
+             difference_name='kernel_difference')
 
 
         output_layer_or_layers = kernel_model(art_layer)
