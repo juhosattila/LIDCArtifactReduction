@@ -35,6 +35,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         self._total_variation_loss_set = False
 
+        self._weight_dir = dir_system.MODEL_WEIGHTS_DIRECTORY
         self._directory_system = dir_system
 
         self._build_model()
@@ -122,7 +123,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # We are going to use early stopping and model saving mechanism.
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_loss'
-        file = os.path.join(directory_system.MODEL_WEIGHTS_DIRECTORY, self._name)
+        file = os.path.join(self._weight_dir, self._name)
         file = file + '.{epoch:02d}-{' + monitored_value + ':.4f}' + self._model_weights_extension
         checkpointer = ModelCheckpoint(
                         monitor=monitored_value,

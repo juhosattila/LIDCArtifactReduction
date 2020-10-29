@@ -22,7 +22,8 @@ radon_transform = ParallelRadonTransform(geometry)
 ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='orig')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
-generator = LIDCDataGenerator(array_stream=array_stream, load_data_config='data_config_file',  # or True
+generator = LIDCDataGenerator(array_stream=array_stream, data_configuration_dir=ds.DATA_CONFIGURATION_DIR,
+                              load_data_config='data_config_file',  # or True
                               verbose=True, batch_size=8, shuffle=True)
 
 # For noisy transformations you mat set lnI0 and sumscaling.
@@ -44,7 +45,7 @@ results = (results[0].numpy(), results[1].numpy())
 
 nr_of_samples = 3
 timestemp = datetime.now().strftime("%Y%m%d-%H%M%S")
-base_dir = utility.direc(directory_system.PREDICTED_IMAGES_DIR, 'UNet_Transferred_NoTV_Training.06-0.0042' )
+base_dir = utility.direc(ds.PREDICTED_IMAGES_DIR, 'UNet_Transferred_NoTV_Training.06-0.0042' )
 
 for i in range(nr_of_samples):
 

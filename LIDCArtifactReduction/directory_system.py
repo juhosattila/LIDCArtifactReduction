@@ -15,10 +15,10 @@ else:  # 'Linux'
 
 MODEL_PLOTS_DIRECTORY = utility.direc(PROJECT_DIRECTORY, 'model_plots')
 #MODEL_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'models')
-MODEL_WEIGHTS_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'model_weights')
 
-DATA_CONFIGURATION_DIR = utility.direc(PROJECT_DATA_DIRECTORY, 'data_config')
-PREDICTED_IMAGES_DIR = utility.direc(PROJECT_DATA_DIRECTORY, 'predictions')
+BASE_MODEL_WEIGHTS_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'model_weights')
+
+
 
 
 class DirectorySystem:
@@ -45,6 +45,11 @@ class DirectorySystem:
 
         algorithm_dir = 'algorithm-' + algorithm_name
         self.ALGORITHM_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, algorithm_dir)
+
+        self.MODEL_WEIGHTS_DIRECTORY = utility.direc(self.ALGORITHM_DIRECTORY, 'model_weights')
+        self.PREDICTED_IMAGES_DIR = utility.direc(self.ALGORITHM_DIRECTORY, 'predictions')
+        self.DATA_CONFIGURATION_DIR = utility.direc(self.ALGORITHM_DIRECTORY, 'data_config')
+
         self.LOG_DIRECTORY = utility.direc(self.ALGORITHM_DIRECTORY, 'logs')
         self.TENSORBOARD_LOGDIR = utility.direc(self.LOG_DIRECTORY, 'tensorboard')
         self.CSV_LOGDIR = utility.direc(self.LOG_DIRECTORY, 'csvlogger')

@@ -19,7 +19,8 @@ radon_transform = ParallelRadonTransform(geometry)
 ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='orig')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
-generator = LIDCDataGenerator(array_stream=array_stream, load_data_config='data_config_file', verbose=True,
+generator = LIDCDataGenerator(array_stream=array_stream, data_configuration_dir=ds.DATA_CONFIGURATION_DIR,
+                              load_data_config='data_config_file', verbose=True,
                             validation_split=0.25, test_split=0.25, batch_size=8)
 # For noisy transformations you mat set lnI0 and sumscaling.
 noisy_transformer = FBPConvnetGeneratorTransform(geometry, radon_transform,

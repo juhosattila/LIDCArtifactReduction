@@ -6,9 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 
-from LIDCArtifactReduction import utility, directory_system
 from LIDCArtifactReduction.array_streams import ArrayStream
-
 from LIDCArtifactReduction.generator.generator_transform import LIDCGeneratorTransform
 
 
@@ -19,7 +17,7 @@ class LIDCDataGenerator:
     Capable of shuffling data, augmenting it with possible Poisson noise.
     It can provide iterator objects for training, validation and testing.
     """
-    def __init__(self, array_stream: ArrayStream,
+    def __init__(self, array_stream: ArrayStream, data_configuration_dir,
                  validation_split=0.1, test_split=0.1, batch_size=16,
                  shuffle : bool = True,
                  verbose : bool = False,
@@ -35,7 +33,7 @@ class LIDCDataGenerator:
 
         self._load_data_configuration = load_data_config
         self._data_configuraion_file_format = '.json'
-        self._data_configuration_dir = directory_system.DATA_CONFIGURATION_DIR
+        self._data_configuration_dir = data_configuration_dir
 
         validation_test_split = validation_split + test_split
 

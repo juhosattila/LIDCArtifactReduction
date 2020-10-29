@@ -19,7 +19,7 @@ class ModelInterface:
         self._model : Model = None
 
         self._model_weights_extension = '.hdf5'
-        self._weight_dir = directory_system.MODEL_WEIGHTS_DIRECTORY
+        self._weight_dir = directory_system.BASE_MODEL_WEIGHTS_DIRECTORY
 
     @property
     def name(self):
@@ -56,12 +56,12 @@ class ModelInterface:
     def __call__(self, inputs):
         return self._model(inputs)
 
-    # TODO: not yet used, beacuse Radon layers are not serialisable
-    def save(self):
-        raise NotImplementedError()
-        file = os.path.join(directory_system.MODEL_DIRECTORY, self._name)
-        # If format='h5' is used, losses and custom objects need to be handled separately.
-        self._model.save(file, save_format='tf')
+    # # TODO: not yet used, beacuse Radon layers are not serialisable
+    # def save(self):
+    #     raise NotImplementedError()
+    #     file = os.path.join(directory_system.MODEL_DIRECTORY, self._name)
+    #     # If format='h5' is used, losses and custom objects need to be handled separately.
+    #     self._model.save(file, save_format='tf')
 
     def save_weights(self):
         file = os.path.join(self._weight_dir, self._name)
