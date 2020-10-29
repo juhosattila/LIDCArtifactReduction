@@ -14,7 +14,7 @@ else:  # 'Linux'
 
 
 MODEL_PLOTS_DIRECTORY = utility.direc(PROJECT_DIRECTORY, 'model_plots')
-MODEL_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'models')
+#MODEL_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'models')
 MODEL_WEIGHTS_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'model_weights')
 
 DATA_CONFIGURATION_DIR = utility.direc(PROJECT_DATA_DIRECTORY, 'data_config')
@@ -36,14 +36,15 @@ class DirectorySystem:
             self.PROJECT_DIRECTORY = '/home/juhosa/LIDCArtifactReduction/'
             self.PROJECT_DATA_DIRECTORY = '/home/juhosa/CI/LIDCArtifactReduction_Data'
 
-        data_prefix = '-' + data_name if data_name is not '' else ''
+        data_prefix = '-' + data_name
         configuration = data_prefix + '-a' + str(geometry.nr_projections)
         self.DATA_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-transformed' + configuration)
         self.SAMPLE_DATA_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY,
                                                    'LIDC-IDRI-sample-transformed' + configuration)
 
-        algorithm_prefix = '-' + algorithm_name if algorithm_name is not '' else ''
 
-        self.LOG_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'logs' + algorithm_prefix)
+        algorithm_dir = 'algorithm-' + algorithm_name
+        self.ALGORITHM_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, algorithm_dir)
+        self.LOG_DIRECTORY = utility.direc(self.ALGORITHM_DIRECTORY, 'logs')
         self.TENSORBOARD_LOGDIR = utility.direc(self.LOG_DIRECTORY, 'tensorboard')
         self.CSV_LOGDIR = utility.direc(self.LOG_DIRECTORY, 'csvlogger')
