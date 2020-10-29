@@ -26,7 +26,7 @@ geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projecti
 radon_transform = ForwardprojectionParallelRadonTransform(geometry)
 offline_transformation = ResizeRescaleRadonOfflineTransformation(geometry, radon_transform)
 
-ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='orig')
+ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='FBPPostProcess')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
 dl.run_offline_transformations(offline_transformation, array_stream=array_stream, verbose=True)
