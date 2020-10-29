@@ -4,6 +4,7 @@ from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
 
+from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
@@ -17,12 +18,13 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts i
 
 class IterativeARTResNetTraining(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
-                 target_model: IterativeARTResNet,
+                 target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
         super().__init__(name=name)
 
         self._radon_transformation = radon_transformation
         self._target_model = target_model
+        self._weight_dir = dir_system.MODEL_WEIGHTS_DIRECTORY
 
         self._build()
 
@@ -57,7 +59,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
 
     # TODO: Toggle, if performance needed.
-    #@tf.function
+    @tf.function
     def predict_depth_generator_step(self, data_batch):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
@@ -98,7 +100,7 @@ class IterativeARTResNetTraining(ModelInterface):
         return self.predict_depth_generator(new_data_iterator, depth-1, steps=None, progbar=progbar)
 
 
-    def train(self, train_iterator, final_depth, steps_per_epoch):
+    def train(self, train_iterator, final_depth, data_epoch, steps_per_epoch):
         """
         Args:
             final_depth: the depth the system should be trained to reach. Should be at least 1.
@@ -112,20 +114,22 @@ class IterativeARTResNetTraining(ModelInterface):
         for actual_depth in range(1, final_depth+1):  # actual depth <= final_depth
             print("---------------------------------")
             print("--- Training to actual level {}---".format(actual_depth))
-            print("--- Starting data preparation ---")
+            for de in range(1, data_epoch+1):
+                print("--- Data epoch {}----------------".format(de))
+                print("--- Starting data preparation ---")
 
-            # Data needs to be generated for each sublevel.
-            iterators = []
-            for data_level in range(actual_depth):
-                print("---Data level {}---".format(data_level))
-                progbar = Progbar(data_level+1)
-                iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
-                                                              progbar=progbar))
+                # Data needs to be generated for each sublevel.
+                iterators = []
+                for data_level in range(actual_depth):
+                    print("---Data level {}---".format(data_level))
+                    progbar = Progbar(data_level+1)
+                    iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
+                                                                  progbar=progbar))
 
-            super_iterator = RecSinoSuperIterator(iterators)
+                super_iterator = RecSinoSuperIterator(iterators)
 
-            # TODO: checkpointer is needed to save weights
-            self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch)
+                self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
+                                  weights_filepath=self.get_weight_file_path())
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):
@@ -133,6 +137,7 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         super().__init__(**kwargs)
         self._custom_loss: IterativeARTRestNetTrainingLoss = custom_loss
         self._all_metrics = None
+        self._monitored_metric = None
 
 
     # In case of overriding only train_step, tf.function is not needed.
@@ -170,16 +175,13 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         for m in self._metrics_gradient:
             m.update_state(doutput_dinput)
 
-        # TODO: delete
-        # return [(m.name, m.result()) for m in self.metrics]
-
         # If you had compiled metrics.
         # self.compiled_metrics.update_state(good_reconstructions, reconstructions_output)
 
         # For overriding train_step in Tf>=2.2 return a dict mapping metric names to current value
         #return {m.name: m.result() for m in self.metrics}
 
-    def train(self, iterator, epochs, steps_per_epoch):
+    def train(self, iterator, epochs, steps_per_epoch, weights_filepath):
         print(f"Training network {self.name}.")
         for epoch in range(epochs):
             print(f"Epoch {epoch}:")
@@ -191,7 +193,12 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                 if step % 1 == 0:
                     progbar.update(step, values=[(m.name, m.result().numpy()) for m in self.metrics])
 
-        # Possible validation could be added here.
+            print("Saving model")
+            self.save_weights(filepath=weights_filepath)
+
+            for m in self.metrics:
+                m.reset()
+            # Possible validation could be added here.
 
 
 
@@ -219,6 +226,7 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                                   RadioSNR('rec_snr'),
                                   SSIM('rec_ssim'),
                                   RelativeError('rec_rel_err')]
+        self._monitored_metric = self._metrics_reconstruction[1]
         self._metrics_error_sino = [MeanSquare('error_sino_ms')]
         self._metrics_gradient = [MeanSquare('gradient_ms')]
 

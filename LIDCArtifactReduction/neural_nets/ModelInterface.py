@@ -63,9 +63,12 @@ class ModelInterface:
     #     # If format='h5' is used, losses and custom objects need to be handled separately.
     #     self._model.save(file, save_format='tf')
 
-    def save_weights(self):
+    def get_weight_file_path(self):
         file = os.path.join(self._weight_dir, self._name)
-        self._model.save_weights(file + self._model_weights_extension)
+        return file + self._model_weights_extension
+
+    def save_weights(self):
+        self._model.save_weights(self.get_weight_file_path())
 
     def load_weights(self, name=None, latest=False):
         """
