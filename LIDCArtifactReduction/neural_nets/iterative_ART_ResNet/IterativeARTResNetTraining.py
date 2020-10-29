@@ -103,21 +103,22 @@ class IterativeARTResNetTraining(ModelInterface):
         return self.predict_depth_generator(new_data_iterator, depth-1, steps=None, progbar=progbar)
 
 
-    def train(self, train_iterator, final_depth, data_epoch, steps_per_epoch):
+    def train(self, train_iterator, final_depth, data_epoch, steps_per_epoch, start_depth=1, start_epoch=1):
         """
         Args:
             final_depth: the depth the system should be trained to reach. Should be at least 1.
         """
+        _start_epoch = start_epoch
 
         print("---------------------------------")
         print("--- Training to final level {}----".format(final_depth))
         print("---------------------------------")
 
         # What capability level is taught now.
-        for actual_depth in range(1, final_depth+1):  # actual depth <= final_depth
+        for actual_depth in range(start_depth, final_depth+1):  # actual depth <= final_depth
             print("---------------------------------")
             print("--- Training to actual level {}---".format(actual_depth))
-            for de in range(1, data_epoch+1):
+            for de in range(_start_epoch, data_epoch+1):
                 print("--- Data epoch {}----------------".format(de))
                 print("--- Starting data preparation ---")
 
@@ -133,6 +134,9 @@ class IterativeARTResNetTraining(ModelInterface):
 
                 self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
                                   weights_filepath=os.path.join(self._weight_dir, self._name))
+            
+            # In upcoming levels we start from epoch 1.
+            _start_epoch = 1
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):

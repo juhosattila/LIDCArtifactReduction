@@ -56,6 +56,7 @@ class IterativeARTResNet(ModelInterface):
              name=IterativeARTResNet.resnet_name,
              output_difference_layer=True,
              difference_name='kernel_difference')
+        self.kernel_model = kernel_model
 
 
         output_layer_or_layers = kernel_model(art_layer)

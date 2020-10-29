@@ -86,5 +86,5 @@ class ModelInterface:
         print(file)
         print("----------------------------------")
 
-        self._model.load_weights(file)
+        self._model.load_weights(file, by_name=True)
         return self
