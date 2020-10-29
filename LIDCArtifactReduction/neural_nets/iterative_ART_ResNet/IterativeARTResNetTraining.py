@@ -57,7 +57,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
 
     # TODO: Toggle, if performance needed.
-    @tf.function
+    #@tf.function
     def predict_depth_generator_step(self, data_batch):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
@@ -95,7 +95,7 @@ class IterativeARTResNetTraining(ModelInterface):
             new_good_reco.append(good_reconstructions)
 
         new_data_iterator = RecSinoArrayIterator(new_actual, new_sino, new_good_reco)
-        return self.predict_depth_generator(new_data_iterator, depth-1, steps=None)
+        return self.predict_depth_generator(new_data_iterator, depth-1, steps=None, progbar=progbar)
 
 
     def train(self, train_iterator, final_depth, steps_per_epoch):
@@ -118,7 +118,7 @@ class IterativeARTResNetTraining(ModelInterface):
             iterators = []
             for data_level in range(actual_depth):
                 print("---Data level {}---".format(data_level))
-                progbar = Progbar(data_level)
+                progbar = Progbar(data_level+1)
                 iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
                                                               progbar=progbar))
 
@@ -170,7 +170,8 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         for m in self._metrics_gradient:
             m.update_state(doutput_dinput)
 
-        return [(m.name, m.result()) for m in self.metrics]
+        # TODO: delete
+        # return [(m.name, m.result()) for m in self.metrics]
 
         # If you had compiled metrics.
         # self.compiled_metrics.update_state(good_reconstructions, reconstructions_output)
@@ -185,10 +186,10 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
             progbar = Progbar(steps_per_epoch, verbose=1, stateful_metrics=[m.name for m in self.metrics])
             for step in range(1, steps_per_epoch+1):
                 data = next(iterator)
-                metric_results = self.train_step(data)
+                self.train_step(data)
 
                 if step % 1 == 0:
-                    progbar.update(step, values=metric_results)
+                    progbar.update(step, values=[(m.name, m.result().numpy()) for m in self.metrics])
 
         # Possible validation could be added here.
 

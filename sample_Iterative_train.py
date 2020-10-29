@@ -44,4 +44,4 @@ training_network.compile(
     reconstructions_output_weight=1.0,
     error_singrom_weight=1.0 / (1.0 * geometry.volume_img_width),
     gradient_weight=1.0)
-training_network.train(train_iterator, final_depth=5, steps_per_epoch=50)
+training_network.train(train_iterator, final_depth=5, steps_per_epoch=10)

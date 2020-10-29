@@ -17,7 +17,12 @@ class RecSinoGradientLoss(IterativeARTRestNetTrainingLoss):
 
         self._mse = losses.MeanSquaredError()
 
+
     def __call__(self, reconstructions_output, error_sinogram, good_reconstructions, doutput_dinput):
         return self._reconstructions_output_weight * self._mse(reconstructions_output, good_reconstructions) + \
                self._error_sinogram_weight * tf.reduce_mean(tf.square(error_sinogram)) + \
                self._gradient_weight * tf.reduce_mean(tf.square(doutput_dinput))
+
+        # return self._reconstructions_output_weight * tf.reduce_mean(tf.square(reconstructions_output-good_reconstructions)) + \
+        #        self._error_sinogram_weight * tf.reduce_mean(tf.square(error_sinogram)) + \
+        #        self._gradient_weight * tf.reduce_mean(tf.square(doutput_dinput))
