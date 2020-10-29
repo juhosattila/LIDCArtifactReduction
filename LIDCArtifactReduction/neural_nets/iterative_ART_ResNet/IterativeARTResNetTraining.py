@@ -89,15 +89,20 @@ class IterativeARTResNetTraining(ModelInterface):
         new_sino = []
         new_good_reco = []
 
+        
+
         # Lots of optimisation needed. Outputting sinograms and good_reconstructions could be optimized.
         nr_steps = steps or len(data_iterator)
+        progbar_sublevel = Progbar(target=nr_steps, verbose=1)
         for i in range(nr_steps):
             data_batch = next(data_iterator)
             reconstructions_output, bad_sinograms, good_reconstructions = \
                 self.predict_depth_generator_step(data_batch)
-            new_actual.append(reconstructions_output)
-            new_sino.append(bad_sinograms)
-            new_good_reco.append(good_reconstructions)
+            new_actual.append(reconstructions_output.numpy())
+            new_sino.append(bad_sinograms.numpy())
+            new_good_reco.append(good_reconstructions.numpy())
+
+            progbar_sublevel.update(i+1)
 
         new_data_iterator = RecSinoArrayIterator(new_actual, new_sino, new_good_reco)
         return self.predict_depth_generator(new_data_iterator, depth-1, steps=None, progbar=progbar)
@@ -126,9 +131,8 @@ class IterativeARTResNetTraining(ModelInterface):
                 iterators = []
                 for data_level in range(actual_depth):
                     print("---Data level {}---".format(data_level))
-                    progbar = Progbar(data_level+1)
                     iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
-                                                                  progbar=progbar))
+                                                                  progbar=None))
 
                 super_iterator = RecSinoSuperIterator(iterators)
 
