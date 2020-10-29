@@ -19,7 +19,7 @@ from LIDCArtifactReduction.utility import show_grey
 geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=40)
 radon_transform = ParallelRadonTransform(geometry)
 
-ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='orig')
+ds = DirectorySystem(geometry, data_name='skimage', algorithm_name='FBPPostProcess')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
 generator = LIDCDataGenerator(array_stream=array_stream, data_configuration_dir=ds.DATA_CONFIGURATION_DIR,

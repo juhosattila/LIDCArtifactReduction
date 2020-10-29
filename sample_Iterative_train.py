@@ -17,7 +17,7 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn impo
 geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=40)
 radon_transform = PyronnParallelARTRadonTransform(geometry, alfa=0.5 / 256)
 
-ds = DirectorySystem(geometry, data_name='pyronn', algorithm_name='iter')
+ds = DirectorySystem(geometry, data_name='pyronn', algorithm_name='IterativeARTResnet')
 array_stream = RecSinoArrayStream(directory=ds.DATA_DIRECTORY)  # or ds.SAMPLE_DATA_DIRECTORY
 
 generator = LIDCDataGenerator(array_stream=array_stream, data_configuration_dir=ds.DATA_CONFIGURATION_DIR,
