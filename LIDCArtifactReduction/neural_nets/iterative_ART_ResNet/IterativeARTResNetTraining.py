@@ -1,3 +1,6 @@
+import os
+import numpy as np
+
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras import metrics
@@ -129,7 +132,7 @@ class IterativeARTResNetTraining(ModelInterface):
                 super_iterator = RecSinoSuperIterator(iterators)
 
                 self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
-                                  weights_filepath=self.get_weight_file_path())
+                                  weights_filepath=os.path.join(self._weight_dir, self._name))
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):
@@ -194,10 +197,10 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                     progbar.update(step, values=[(m.name, m.result().numpy()) for m in self.metrics])
 
             print("Saving model")
-            self.save_weights(filepath=weights_filepath)
+            self.save_weights(filepath=weights_filepath + '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
 
             for m in self.metrics:
-                m.reset()
+                m.reset_states()
             # Possible validation could be added here.
 
 

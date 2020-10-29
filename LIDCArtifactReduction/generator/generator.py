@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 
+from LIDCArtifactReduction import utility
 from LIDCArtifactReduction.array_streams import ArrayStream
 from LIDCArtifactReduction.generator.generator_transform import LIDCGeneratorTransform
 
@@ -64,6 +65,10 @@ class LIDCDataGenerator:
                     print("-----------------------------")
 
             else:  # load_data_configuration is a str specifying a filename
+                print("### LIDC Generator ###")
+                print("-----------------------------")
+                print("Found data configuration, loading specified: {}".format(self._load_data_configuration))
+                print("-----------------------------")
                 filename = self._load_data_configuration
                 latest = False
 
