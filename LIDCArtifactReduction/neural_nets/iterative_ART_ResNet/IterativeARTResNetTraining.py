@@ -204,7 +204,7 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                     progbar.update(step, values=[(m.name, m.result().numpy()) for m in self.metrics])
 
             print("Saving model")
-            self.save_weights(filepath=weights_filepath + '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
+            self.save_weights(filepath=weights_filepath + '-' + self._monitored_metric.name + '-' + '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
 
             for m in self.metrics:
                 m.reset_states()
