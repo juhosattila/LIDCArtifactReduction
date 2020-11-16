@@ -10,7 +10,7 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts i
 class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoisyTransform):
     def __init__(self, geometry: RadonGeometry, radon_transform: ARTRadonTransform,
                  mode: int = 4,
-                 add_noise: bool = True, lnI0=5 * np.log(10), sum_scaling=5.0,
+                 add_noise: bool = True, lnI0=10 * np.log(5), sum_scaling=5.0,
                  test_mode: bool = False):
         super().__init__(geometry=geometry,
                          add_noise=add_noise, lnI0=lnI0, sum_scaling=sum_scaling,
