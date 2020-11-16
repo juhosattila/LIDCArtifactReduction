@@ -37,8 +37,6 @@ training_network = DCAR_TrainingNetwork(radon_geometry=geometry, radon_transform
 # Optionally load weights. latest=True loads the most recent weightfile and ignores 'name'.
 #training_network.load_weights(name='UNet40_Sample_Training_weight_file')#latest=True)
 
-# Setting training is always followed by compilation.
-training_network.set_training(training=True)
 training_network.compile(
     lr=1e-3, reconstruction_output_weight=10.0, sino_output_weight=1.0 / (16.0 * geometry.nr_projections),
     add_total_variation=True, total_variation_eps=0.001, tot_var_loss_weight=0.05, mse_tv_weight=3.0)

@@ -37,7 +37,6 @@ training_network = DCAR_TrainingNetwork(radon_geometry=geometry, radon_transform
                                         target_model=unet, name='UNet_L1TV_ValRec_Sample_Training',
                                         dir_system=ds)
 training_network.load_weights(name='UNet_Transferred_NoTV_Training.06-0.0042')#latest=True)
-training_network.set_inference_mode()
 
 test_batch = next(test_iterator)
 test_batch = test_batch[:2]
@@ -68,7 +67,7 @@ for i in range(nr_of_samples):
         test_batch[1][DCAR_TrainingNetwork.reconstruction_output_name][i] - results[0][i],
         ], norm_values=[-10.0, 10.0],
         save_names=['expected_predicted_rec_diff'], directory=direc)
-    
+
     show_grey([
         test_batch[1][DCAR_TrainingNetwork.sino_output_name][i] - results[1][i]
         ], norm_values=[-255.0, 255.0],

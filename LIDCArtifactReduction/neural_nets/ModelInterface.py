@@ -34,27 +34,8 @@ class ModelInterface:
         final_to_file = os.path.join(direc, valid_to_file)
         plot_model(self._model, final_to_file, show_shapes)
 
-    @abstractmethod
-    def compile(self):
-        pass
-
-    @abstractmethod
-    def set_training(self, training : bool):
-        """After set_training we usually need recompilation."""
-        pass
-
-    # TODO: this is not needed
-    def set_inference_mode(self):
-        """Sets model to inference mode. Recompilation done."""
-        self.set_training(training=False)
-        self.compile()
-
-    def set_learning_mode(self):
-        """After this we usually need recompilation."""
-        self.set_training(training=True)
-
-    def __call__(self, inputs):
-        return self._model(inputs)
+    def __call__(self, inputs, training=False):
+        return self._model(inputs, training=training)
 
     # # TODO: not yet used, beacuse Radon layers are not serialisable
     # def save(self):

@@ -1,12 +1,8 @@
-import os
-
-import tensorflow as tf
 from tensorflow.keras.layers import Input
 from tensorflow.keras import Model
 
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.radon_layer import ARTRadonLayer
-from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_few_batch_norms import ResidualUNetFewBatchNorms
 from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_few_BNs_transconv import ResidualUNetFewBNsTransConv
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ARTRadonTransform

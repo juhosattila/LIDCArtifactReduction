@@ -5,8 +5,6 @@ import numbers
 from tensorflow.keras.layers import Input, Conv2D, \
     BatchNormalization, MaxPooling2D, Dropout, UpSampling2D, Conv2DTranspose
 from tensorflow.keras import regularizers
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import MeanSquaredError
 
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 
@@ -50,13 +48,6 @@ class ResidualUNetAbstract(ModelInterface):
         self._difference_layer = None
 
         self._build_model()
-
-    def _set_training(self, training: bool):
-        """Change needs recompiling."""
-        for batch_norm_layer in self._batch_norm_layers:
-            batch_norm_layer.training = training
-        for dropout_layer in self._dropout_layers:
-            dropout_layer.training = training
 
     def _input(self):
         return Input(self._input_shape + (1,), name=self._input_name)
@@ -133,11 +124,3 @@ class ResidualUNetAbstract(ModelInterface):
     def difference_layer(self):
         """Returns output_layer - input_layer."""
         return self._difference_layer
-
-    def set_training(self, training: bool):
-        """Change needs recompiling."""
-        self._set_training(training)
-
-    # Used for sake of being able to compile after setting training mode.
-    def compile(self):
-        self._model.compile(optimizer=Adam(1e-3), loss=MeanSquaredError())

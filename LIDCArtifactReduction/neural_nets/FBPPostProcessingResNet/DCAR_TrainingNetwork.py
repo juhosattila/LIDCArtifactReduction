@@ -153,13 +153,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                         epochs=epochs, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
                         callbacks=callbacks, verbose=verbose, initial_epoch=initial_epoch)
 
-    def set_training(self, training : bool):
-        """After set_training we usually need recompilation."""
-        self.target_model.set_training(training)
-
     def predict(self, data_iterator, steps=None, verbose=1):
-        self.set_training(training=False)
-
         # Tensorboard and logging
         datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "predict", datetimenow)
