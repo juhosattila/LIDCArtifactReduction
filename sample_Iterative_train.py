@@ -1,7 +1,7 @@
 # Needed in this sequence
 import LIDCArtifactReduction
-LIDCArtifactReduction.init()
-#LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
+LIDCArtifactReduction.init(gpu_id=0)
+#LIDCArtifactReduction.init(gpu_id=0, gpu_memory_limit_MB=6700)
 
 import numpy as np
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry

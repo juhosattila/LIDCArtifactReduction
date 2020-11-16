@@ -1,7 +1,7 @@
 # Needed in this sequence
 import LIDCArtifactReduction
-LIDCArtifactReduction.init()
-# LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
+LIDCArtifactReduction.init(gpu_id=0)
+# LIDCArtifactReduction.init(gpu_id=0, gpu_memory_limit_MB=6700)
 
 from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 from LIDCArtifactReduction.directory_system import DirectorySystem
@@ -23,6 +23,7 @@ dl = DicomLoader(batch_size=7, ignored_edge_slice=0.1)
 # ----------------------------
 
 geometry = RadonGeometry(volume_img_width=256, projection_width=256, nr_projections=30)
+# Here  change to corresponding algorithm. Now standard parallel and pyronn are available.
 radon_transform = ForwardprojectionParallelRadonTransform(geometry)
 offline_transformation = ResizeRescaleRadonOfflineTransformation(geometry, radon_transform)
 

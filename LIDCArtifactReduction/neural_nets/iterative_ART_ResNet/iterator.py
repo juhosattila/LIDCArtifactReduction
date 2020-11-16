@@ -3,13 +3,13 @@ from typing import List
 import tensorflow as tf
 from tensorflow import Tensor
 from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
+from tensorflow_addons.utils.types import TensorLike
 
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import output_data_formatter
 
 
 class RecSinoArrayIterator(KerasImgIterator):
-    def __init__(self, actual_reconstructions_batches: List[Tensor], sinograms_batches: List[Tensor],
-                 good_reconstructions_batches: List[Tensor]):
+    def __init__(self, actual_reconstructions_batches, sinograms_batches, good_reconstructions_batches):
         super().__init__(len(actual_reconstructions_batches), 1, shuffle=False, seed=None)
         self._actual_reconstructions_batches = actual_reconstructions_batches
         self._sinograms_batches = sinograms_batches

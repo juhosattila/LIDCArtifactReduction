@@ -89,8 +89,6 @@ class IterativeARTResNetTraining(ModelInterface):
         new_sino = []
         new_good_reco = []
 
-        
-
         # Lots of optimisation needed. Outputting sinograms and good_reconstructions could be optimized.
         nr_steps = steps or len(data_iterator)
         progbar_sublevel = Progbar(target=nr_steps, verbose=1)
@@ -141,6 +139,7 @@ class IterativeARTResNetTraining(ModelInterface):
             
             # In upcoming levels we start from epoch 1.
             _start_epoch = 1
+
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):

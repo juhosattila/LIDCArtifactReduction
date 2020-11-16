@@ -1,6 +1,6 @@
 import LIDCArtifactReduction
-#IDCArtifactReduction.init()
-LIDCArtifactReduction.init(gpu_memory_limit_MB=6700)
+#IDCArtifactReduction.init(gpu_id=0)
+LIDCArtifactReduction.init(gpu_id=0, gpu_memory_limit_MB=6700)
 
 from datetime import datetime
 
