@@ -35,7 +35,7 @@ train_iterator = generator.get_new_train_iterator(noisy_transformer)
 resnet = IterativeARTResNet(radon_geometry=geometry, radon_transformation=radon_transform,
                              name='Sample_IterativeARTResNet')
 training_network = IterativeARTResNetTraining(radon_transformation=radon_transform, dir_system=ds,
-                                        target_model=resnet, name='Sample_IterativeARTResNet_Training')#, dir_system=ds)
+                                        target_model=resnet, name='Sample_IterativeARTResNet_Training')
 
 # Optionally load weights. latest=True loads the most recent weightfile and ignores 'name'.
 #training_network.load_weights(name='Sample_IterativeARTResNet_Training')#latest=True)

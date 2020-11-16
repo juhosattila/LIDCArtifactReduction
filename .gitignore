@@ -5,10 +5,11 @@
 
 # Relevant python files.
 !LIDCArtifactReduction/**/*.py
-!sample_preprocess.py
-!sample_FBPPostprocessing_train.py
-!sample_predict.py
-!sample_Iterative_train.py
+!sample_FBPPostprocessing/sample_preprocess_FBPPostprocessing.py
+!sample_FBPPostprocessing/sample_train_FBPPostprocessing.py
+!sample_FBPPostprocessing/sample_predict_FBPPostprocessing.py
+!sample_IterativeARTResNet/sample_train_IterativeARTResNet.py
+!sample_IterativeARTResNet/sample_preprocess_IterativeARTResNet.py
 !sample_GPU_init.py
 
 # External package

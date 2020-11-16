@@ -10,7 +10,8 @@ from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.generator.generator import LIDCDataGenerator
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.DCAR_TrainingNetwork import DCAR_TrainingNetwork
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_UNet_FewBatchNorms
-from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.FBPConvnet_generator_transform import FBPConvnetGeneratorTransform
+from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.FBPConvnet_generator_transform \
+    import FBPConvnetGeneratorTransform
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_orig import ParallelRadonTransform
 from LIDCArtifactReduction.utility import show_grey
@@ -67,8 +68,8 @@ for i in range(nr_of_samples):
         test_batch[1][DCAR_TrainingNetwork.reconstruction_output_name][i] - results[0][i],
         ], norm_values=[-10.0, 10.0],
         save_names=['expected_predicted_rec_diff'], directory=direc)
+    
     show_grey([
         test_batch[1][DCAR_TrainingNetwork.sino_output_name][i] - results[1][i]
         ], norm_values=[-255.0, 255.0],
         save_names=['expected_predicted_sino_diff'], directory=direc)
-
