@@ -152,19 +152,35 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
 
     # In case of overriding only train_step, tf.function is not needed.
     # TODO: Toggle for debugging or speed.
-    @tf.function
+    #@tf.function
     def train_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 
+        
+
         with tf.GradientTape() as tape1:
-            with tf.GradientTape(watch_accessed_variables=False) as tape2:
-                tape2.watch(actual_reconstructions)
-                #reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
+
+            with tf.autodiff.ForwardAccumulator(
+                primals=actual_reconstructions,
+                # TODO: plusz eps
+                tangents=tf.math.l2_normalize(good_reconstructions-actual_reconstructions, axis=[1,2,3])
+            ) as acc:
+                # If not dictionary:
+                # reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
                 reconstructions_output, errors_sinogram = self(inputs, training=True)
-                # TODO: derivative wrt input or art output?
-            doutput_dinput = tape2.gradient(reconstructions_output, actual_reconstructions)
+                #reconstructions_output, errors_sinogram = self([reconstructions_output, bad_sinograms], training=True)
+
+            # TODO: delete unnecessary prints
+            print("-----SHAPES----")
+            print(tf.shape(actual_reconstructions))
+            print(tf.shape(reconstructions_output))
+            
+            doutput_dinput = acc.jvp(reconstructions_output)
+
+            print(tf.shape(doutput_dinput))
+            print("-----SHAPES END----")
             # doutput_dinput = [grad if grad is not None else tf.zeros_like(var) for grad, var in zip(doutput_dinput, actual_reconstructions)]
 
             lossvalue = self._custom_loss(
