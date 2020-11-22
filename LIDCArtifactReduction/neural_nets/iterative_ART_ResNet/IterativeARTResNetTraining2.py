@@ -19,7 +19,7 @@ from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
 
-class IterativeARTResNetTraining(ModelInterface):
+class IterativeARTResNetTraining2(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
@@ -39,13 +39,13 @@ class IterativeARTResNetTraining(ModelInterface):
         target_imgs_output_layer, target_difference_layer = self._target_model.output_layer_or_layers
 
         radon_layer = ForwardRadonLayer(radon_transformation=self._radon_transformation,
-                                        name=IterativeARTResNetTraining.sinos_output_name)\
-                                        (target_difference_layer)
+                                        name=IterativeARTResNetTraining2.sinos_output_name) \
+            (target_difference_layer)
 
         self._model = IterativeARTResNetTraningCustomTrainStepModel(
-                        inputs=[target_imgs_input_layer, target_sinos_input_layer],
-                        outputs=[target_imgs_output_layer, radon_layer],
-                        name=self._target_model.name)
+            inputs=[target_imgs_input_layer, target_sinos_input_layer],
+            outputs=[target_imgs_output_layer, radon_layer],
+            name=self._target_model.name)
 
     # TODO: provide meaningful defaults
     def compile(self, lr, reconstructions_output_weight, error_singrom_weight, gradient_weight):
@@ -53,13 +53,10 @@ class IterativeARTResNetTraining(ModelInterface):
         loss_object = RecSinoGradientLoss(reconstructions_output_weight, error_singrom_weight, gradient_weight)
         self._model.compile(lr=lr, loss=loss_object)
 
-
     # TODO: implement
     def apply(self):
         # kiertekel kezdeti iteraciokat es futtat halot k-szor
         raise NotImplementedError()
-
-
 
     # TODO: Toggle, if performance needed.
     @tf.function
@@ -72,8 +69,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
         return reconstructions_output, bad_sinograms, good_reconstructions
 
-
-    def predict_depth_generator(self, data_iterator, depth, steps, progbar: Progbar=None):
+    def predict_depth_generator(self, data_iterator, depth, steps, progbar: Progbar = None):
         """
         Args:
             data_iterator: should provide data in the form of a dict containing keys
@@ -100,11 +96,10 @@ class IterativeARTResNetTraining(ModelInterface):
             new_sino.append(bad_sinograms.numpy())
             new_good_reco.append(good_reconstructions.numpy())
 
-            progbar_sublevel.update(i+1)
+            progbar_sublevel.update(i + 1)
 
         new_data_iterator = RecSinoArrayIterator(new_actual, new_sino, new_good_reco)
-        return self.predict_depth_generator(new_data_iterator, depth-1, steps=None, progbar=progbar)
-
+        return self.predict_depth_generator(new_data_iterator, depth - 1, steps=None, progbar=progbar)
 
     def train(self, train_iterator, final_depth, data_epoch, steps_per_epoch, start_depth=1, start_epoch=1):
         """
@@ -118,10 +113,10 @@ class IterativeARTResNetTraining(ModelInterface):
         print("---------------------------------")
 
         # What capability level is taught now.
-        for actual_depth in range(start_depth, final_depth+1):  # actual depth <= final_depth
+        for actual_depth in range(start_depth, final_depth + 1):  # actual depth <= final_depth
             print("---------------------------------")
             print("--- Training to actual level {}---".format(actual_depth))
-            for de in range(_start_epoch, data_epoch+1):
+            for de in range(_start_epoch, data_epoch + 1):
                 print("--- Data epoch {}----------------".format(de))
                 print("--- Starting data preparation ---")
 
@@ -129,17 +124,17 @@ class IterativeARTResNetTraining(ModelInterface):
                 iterators = []
                 for data_level in range(actual_depth):
                     print("---Data level {}---".format(data_level))
-                    iterators.append(self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
-                                                                  progbar=None))
+                    iterators.append(
+                        self.predict_depth_generator(train_iterator, depth=data_level, steps=steps_per_epoch,
+                                                     progbar=None))
 
                 super_iterator = RecSinoSuperIterator(iterators)
 
                 self._model.train(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
                                   weights_filepath=os.path.join(self._weight_dir, self._name))
-            
+
             # In upcoming levels we start from epoch 1.
             _start_epoch = 1
-
 
 
 class IterativeARTResNetTraningCustomTrainStepModel(Model):
@@ -148,7 +143,6 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         self._custom_loss: IterativeARTRestNetTrainingLoss = custom_loss
         self._all_metrics = None
         self._monitored_metric = None
-
 
     # In case of overriding only train_step, tf.function is not needed.
     # TODO: Toggle for debugging or speed.
@@ -161,17 +155,17 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         with tf.GradientTape() as tape1:
             with tf.GradientTape(watch_accessed_variables=False) as tape2:
                 tape2.watch(actual_reconstructions)
-                #reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
+                # reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
                 reconstructions_output, errors_sinogram = self(inputs, training=True)
                 # TODO: derivative wrt input or art output?
             doutput_dinput = tape2.gradient(reconstructions_output, actual_reconstructions)
             # doutput_dinput = [grad if grad is not None else tf.zeros_like(var) for grad, var in zip(doutput_dinput, actual_reconstructions)]
 
             lossvalue = self._custom_loss(
-                            reconstructions_output=reconstructions_output,
-                            error_sinogram=errors_sinogram,
-                            doutput_dinput=doutput_dinput,
-                            good_reconstructions=good_reconstructions)
+                reconstructions_output=reconstructions_output,
+                error_sinogram=errors_sinogram,
+                doutput_dinput=doutput_dinput,
+                good_reconstructions=good_reconstructions)
         trainable_variable_gradients = tape1.gradient(lossvalue, self.trainable_variables)
 
         # Update weights
@@ -189,14 +183,14 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         # self.compiled_metrics.update_state(good_reconstructions, reconstructions_output)
 
         # For overriding train_step in Tf>=2.2 return a dict mapping metric names to current value
-        #return {m.name: m.result() for m in self.metrics}
+        # return {m.name: m.result() for m in self.metrics}
 
     def train(self, iterator, epochs, steps_per_epoch, weights_filepath):
         print(f"Training network {self.name}.")
         for epoch in range(epochs):
             print(f"Epoch {epoch}:")
             progbar = Progbar(steps_per_epoch, verbose=1, stateful_metrics=[m.name for m in self.metrics])
-            for step in range(1, steps_per_epoch+1):
+            for step in range(1, steps_per_epoch + 1):
                 data = next(iterator)
                 self.train_step(data)
 
@@ -204,7 +198,8 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
                     progbar.update(step, values=[(m.name, m.result().numpy()) for m in self.metrics])
 
             print("Saving model")
-            self.save_weights(filepath=weights_filepath + '-' + self._monitored_metric.name + '-' + '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
+            self.save_weights(filepath=weights_filepath + '-' + self._monitored_metric.name + '-' + '{a:.3f}'.format(
+                a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
 
             for m in self.metrics:
                 m.reset_states()
@@ -219,10 +214,10 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         #                sino_error: MS
         #                differential: MS
         self._metrics_reconstruction = [metrics.MeanSquaredError('rec_mse'),
-                                  HU_MAE('rec_HU_mae'),
-                                  RadioSNR('rec_snr'),
-                                  SSIM('rec_ssim'),
-                                  RelativeError('rec_rel_err')]
+                                        HU_MAE('rec_HU_mae'),
+                                        RadioSNR('rec_snr'),
+                                        SSIM('rec_ssim'),
+                                        RelativeError('rec_rel_err')]
         self._monitored_metric = self._metrics_reconstruction[1]
         self._metrics_error_sino = [MeanSquare('error_sino_ms')]
         self._metrics_gradient = [MeanSquare('gradient_ms')]
