@@ -152,13 +152,11 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
 
     # In case of overriding only train_step, tf.function is not needed.
     # TODO: Toggle for debugging or speed.
-    #@tf.function
+    @tf.function
     def train_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
-
-        
 
         with tf.GradientTape() as tape1:
 
