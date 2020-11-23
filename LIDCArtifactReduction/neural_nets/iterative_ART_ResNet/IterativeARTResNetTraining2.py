@@ -19,7 +19,7 @@ from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
 
-class IterativeARTResNetTraining2(ModelInterface):
+class IterativeARTResNetTraining(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
