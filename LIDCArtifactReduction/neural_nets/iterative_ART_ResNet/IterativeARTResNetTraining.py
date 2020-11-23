@@ -123,7 +123,6 @@ class IterativeARTResNetTraining(ModelInterface):
         return self.predict_depth_generator(new_data_iterator, depth - 1, steps=None, progbar=progbar)
 
 
-    # In case of overriding only train_step, tf.function is not needed.
     # Toggle for debugging or deployment.
     @tf.function
     def _train_depth_step(self, data):
@@ -138,12 +137,11 @@ class IterativeARTResNetTraining(ModelInterface):
 
             with tf.autodiff.ForwardAccumulator(
                 primals=actual_reconstructions,
-                # TODO: plusz eps, if necessary
                 tangents=tf.math.l2_normalize(good_reconstructions - actual_reconstructions, axis=[1, 2, 3])
             ) as acc:
                 # If not dictionary:
                 # reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
-                reconstructions_output, errors_sinogram = self(inputs, training=True)
+                reconstructions_output, errors_sinogram = self._model(inputs, training=True)
                 # reconstructions_output, errors_sinogram = self([reconstructions_output, bad_sinograms], training=True)
 
             # TODO: delete unnecessary prints
