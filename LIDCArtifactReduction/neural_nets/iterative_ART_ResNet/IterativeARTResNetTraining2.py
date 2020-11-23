@@ -11,15 +11,15 @@ from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss import \
-    IterativeARTRestNetTrainingLoss, RecSinoGradientLoss
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss \
+    import IterativeARTRestNetTrainingLoss, RecSinoGradientLoss
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import input_data_decoder
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.iterator import RecSinoSuperIterator, RecSinoArrayIterator
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
 
-class IterativeARTResNetTraining(ModelInterface):
+class IterativeARTResNetTraining2(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
