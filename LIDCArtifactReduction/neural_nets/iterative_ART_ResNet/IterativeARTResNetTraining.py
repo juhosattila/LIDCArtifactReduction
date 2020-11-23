@@ -59,9 +59,7 @@ class IterativeARTResNetTraining(ModelInterface):
         # kiertekel kezdeti iteraciokat es futtat halot k-szor
         raise NotImplementedError()
 
-
-
-    # TODO: Toggle, if performance needed.
+    # Toggle for performance, if needed.
     @tf.function
     def predict_depth_generator_step(self, data_batch):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
@@ -149,9 +147,8 @@ class IterativeARTResNetTraningCustomTrainStepModel(Model):
         self._all_metrics = None
         self._monitored_metric = None
 
-
+    # Toggle for debugging or speed.
     # In case of overriding only train_step, tf.function is not needed.
-    # TODO: Toggle for debugging or speed.
     @tf.function
     def train_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)

@@ -35,7 +35,8 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
 
     # Always convert arguments to tensor before passing and make sure, that shape is constant,
     # otherwise new and new graphs will be created, slowing down the execution.
-    # In this case size of tensor is varying, hence it is slow. Do not use yet.
+    # In this case size of tensor is varying, hence it is slow. Do not use tf.function.
+    # Toggle for performance, if needed and sizes are fixed.
     # @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
         data_batch = tf.expand_dims(data_batch, axis=-1)

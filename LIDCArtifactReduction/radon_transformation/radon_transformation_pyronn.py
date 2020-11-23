@@ -40,9 +40,7 @@ class PyronnParallelForwardprojectionRadonTransform(ForwardprojectionRadonTransf
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
-    # Always convert arguments to tensor before passing and make sure, that shape is constant,
-    # otherwise new and new graphs will be created, slowing down the execution.
-    # In this case size of tensor is varying, hence it is slow. Do not use yet.
+    # Toggle for performance, if needed.
     # @tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
@@ -55,6 +53,7 @@ class PyronnParallelBackprojectionRadonTransform(BackprojectionRadonTransform):
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
+    # Toggle for performance, if needed.
     #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
@@ -67,6 +66,7 @@ class PyronnParallelRadonTransform(RadonTransform):
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)
 
+    # Toggle for performance, if needed.
     #@tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
@@ -76,6 +76,7 @@ class PyronnParallelRadonTransform(RadonTransform):
         sinos_4D = tf.expand_dims(sinos_3D, axis=-1)
         return sinos_4D
 
+    # Toggle for performance, if needed.
     #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
@@ -85,6 +86,7 @@ class PyronnParallelRadonTransform(RadonTransform):
         recos_4D = tf.expand_dims(recos_3D, axis=-1)
         return recos_4D
 
+    # Toggle for performance, if needed.
     #@tf.function
     def invert(self, sinos: TensorLike):
         raise NotImplementedError()
@@ -112,7 +114,7 @@ class PyronnParallelARTRadonTransform(PyronnParallelRadonTransform, ARTRadonTran
         PyronnParallelRadonTransform.__init__(self, radon_geometry=radon_geometry)
         ARTRadonTransform.__init__(self, tf.convert_to_tensor(alfa, dtype=tf.float32))
 
-    # TODO: uncomment if speed is needed
+    # Toggle for performance, if needed.
     #@tf.function
     def ART_step(self, imgs: TensorLike, sinos: TensorLike):
         return imgs + self.alfa * self.backproject(sinos - self.forwardproject(imgs))
