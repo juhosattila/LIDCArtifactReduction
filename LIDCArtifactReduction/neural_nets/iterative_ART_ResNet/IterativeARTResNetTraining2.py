@@ -39,13 +39,13 @@ class IterativeARTResNetTraining(ModelInterface):
         target_imgs_output_layer, target_difference_layer = self._target_model.output_layer_or_layers
 
         radon_layer = ForwardRadonLayer(radon_transformation=self._radon_transformation,
-                                        name=IterativeARTResNetTraining.sinos_output_name) \
-            (target_difference_layer)
+                                        name=IterativeARTResNetTraining.sinos_output_name)(target_difference_layer)
 
         self._model = Model(
             inputs=[target_imgs_input_layer, target_sinos_input_layer],
             outputs=[target_imgs_output_layer, radon_layer],
-            name=self._target_model.name)
+            name=self._target_model.name
+        )
 
 
     # TODO: provide meaningful defaults
@@ -80,7 +80,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
     # Toggle, if performance needed.
     @tf.function
-    def predict_depth_generator_step(self, data_batch):
+    def _predict_depth_generator_step(self, data_batch):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
@@ -112,7 +112,7 @@ class IterativeARTResNetTraining(ModelInterface):
         for i in range(nr_steps):
             data_batch = next(data_iterator)
             reconstructions_output, bad_sinograms, good_reconstructions = \
-                self.predict_depth_generator_step(data_batch)
+                self._predict_depth_generator_step(data_batch)
             new_actual.append(reconstructions_output.numpy())
             new_sino.append(bad_sinograms.numpy())
             new_good_reco.append(good_reconstructions.numpy())
@@ -126,16 +126,19 @@ class IterativeARTResNetTraining(ModelInterface):
     # In case of overriding only train_step, tf.function is not needed.
     # Toggle for debugging or deployment.
     @tf.function
-    def train_depth_step(self, data):
+    def _train_depth_step(self, data):
         actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 
         with tf.GradientTape() as tape1:
 
+            # TODO: mean computation of tangent gradient must be changed so that mean is only on batch dimension,
+            #  not on the entire batch. On other dimensions standard summation is needed.
+
             with tf.autodiff.ForwardAccumulator(
                 primals=actual_reconstructions,
-                # TODO: plusz eps
+                # TODO: plusz eps, if necessary
                 tangents=tf.math.l2_normalize(good_reconstructions - actual_reconstructions, axis=[1, 2, 3])
             ) as acc:
                 # If not dictionary:
@@ -178,14 +181,14 @@ class IterativeARTResNetTraining(ModelInterface):
         # For overriding train_step in Tf>=2.2 return a dict mapping metric names to current value
         # return {m.name: m.result() for m in self.metrics}
 
-    def train_depth(self, iterator, epochs, steps_per_epoch, weights_filepath):
+    def _train_depth(self, iterator, epochs, steps_per_epoch, weights_filepath):
         print(f"Training network {self.name}.")
         for epoch in range(epochs):
             print(f"Epoch {epoch}:")
             progbar = Progbar(steps_per_epoch, verbose=1, stateful_metrics=[m.name for m in self._all_metrics])
             for step in range(1, steps_per_epoch + 1):
                 data = next(iterator)
-                self.train_depth_step(data)
+                self._train_depth_step(data)
 
                 if step % 1 == 0:
                     progbar.update(step, values=[(m.name, m.result().numpy()) for m in self._all_metrics])
@@ -229,7 +232,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
                 super_iterator = RecSinoSuperIterator(iterators)
 
-                self.train_depth(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
+                self._train_depth(super_iterator, epochs=1, steps_per_epoch=actual_depth * steps_per_epoch,
                                   weights_filepath=os.path.join(self._weight_dir, self._name))
 
             # In upcoming levels we start from epoch 1.
