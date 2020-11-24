@@ -123,8 +123,6 @@ class IterativeARTResNetTraining(ModelInterface):
         return self.predict_depth_generator(new_data_iterator, depth - 1, steps=None, progbar=progbar)
 
     # TODO: implement entire loss function
-    # TODO: Toggle for debugging or deployment
-    @tf.function
     def _loss_function(self, actual_reconstructions, bad_sinograms, good_reconstructions):
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
@@ -139,8 +137,6 @@ class IterativeARTResNetTraining(ModelInterface):
 
         return reconstruction_output, loss_gradient, tape
 
-    # TODO: Toggle for debugging or deployment
-    # @tf.function
     def _train_step_2iters(self, data):
         actual_reconstructions_0, bad_sinograms, good_reconstructions = input_data_decoder(data)
 
