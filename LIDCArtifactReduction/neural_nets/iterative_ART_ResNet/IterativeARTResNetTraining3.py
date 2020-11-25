@@ -141,12 +141,12 @@ class IterativeARTResNetTraining(ModelInterface):
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
         reconstruction_output, error_sinogram = self._model(inputs, training=True)
-        return reconstruction_output
+        return reconstruction_output, bad_sinograms
 
     def _train_step_2iters(self, data):
         actual_reconstructions_0, bad_sinograms, good_reconstructions = input_data_decoder(data)
 
-        actual_reconstructions_final = tf.while_loop(cond=lambda *args, **kwargs: True,
+        actual_reconstructions_final, _ = tf.while_loop(cond=lambda *args, **kwargs: True,
                       maximum_iterations=3,
                       body=self._eval,
                       loop_vars=(actual_reconstructions_0, bad_sinograms),
