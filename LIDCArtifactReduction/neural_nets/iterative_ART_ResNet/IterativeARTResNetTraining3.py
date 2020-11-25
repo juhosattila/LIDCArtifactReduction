@@ -146,10 +146,17 @@ class IterativeARTResNetTraining(ModelInterface):
     def _train_step_2iters(self, data):
         actual_reconstructions_0, bad_sinograms, good_reconstructions = input_data_decoder(data)
 
+        actual_reconstructions_final = tf.while_loop(cond=lambda *args, **kwargs: True,
+                      maximum_iterations=3,
+                      body=self._eval,
+                      loop_vars=(actual_reconstructions_0, bad_sinograms),
+                      # TODO: try allowing swapping
+                      swap_memory=False)
 
-        actual_reconstructions_1 = self._eval(actual_reconstructions_0, bad_sinograms)
-        actual_reconstructions_2 = self._eval(actual_reconstructions_1, bad_sinograms)
-        actual_reconstructions_3 = self._eval(actual_reconstructions_2, bad_sinograms)
+        # actual_reconstructions_1 = self._eval(actual_reconstructions_0, bad_sinograms)
+        # actual_reconstructions_2 = self._eval(actual_reconstructions_1, bad_sinograms)
+        # actual_reconstructions_3 = self._eval(actual_reconstructions_2, bad_sinograms)
+
         # # 1.
         # actual_reconstructions_1, der_level_loss_W_0, tape0 = \
         #     self._loss_function(actual_reconstructions_0, bad_sinograms, good_reconstructions)
@@ -168,9 +175,11 @@ class IterativeARTResNetTraining(ModelInterface):
         # # Update weights
         # self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
 
+
+
         # Update metrics
         for m in self._metrics_reconstruction:
-            m.update_state(good_reconstructions, actual_reconstructions_3)
+            m.update_state(good_reconstructions, actual_reconstructions_final)
         # for m in self._metrics_error_sino:
         #     m.update_state(errors_sinogram)
         # for m in self._metrics_gradient:
