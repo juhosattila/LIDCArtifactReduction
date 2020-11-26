@@ -56,7 +56,7 @@ class LIDCDataGenerator:
 
         else:
             if self._load_data_configuration is True:  # load previously created data
-                latest = self._load_data_configuration
+                latest = True
                 filename = None
                 if verbose:
                     print("### LIDC Generator ###")
@@ -69,8 +69,8 @@ class LIDCDataGenerator:
                 print("-----------------------------")
                 print("Found data configuration, loading specified: {}".format(self._load_data_configuration))
                 print("-----------------------------")
-                filename = self._load_data_configuration
                 latest = False
+                filename = self._load_data_configuration
 
             train_directories, valid_directories, test_directories = \
                 self._load_data_config(filename=filename, latest=latest)
