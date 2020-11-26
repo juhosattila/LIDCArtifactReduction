@@ -37,7 +37,10 @@ class DirectorySystem:
             self.PROJECT_DATA_DIRECTORY = '/home/juhosa/CI/LIDCArtifactReduction_Data'
 
         data_prefix = '-' + data_name
-        configuration = data_prefix + '-a' + str(geometry.nr_projections)
+        configuration = data_prefix \
+                        + '-width' + str(geometry.volume_img_width) \
+                        + '-detw' + str(geometry.projection_width) \
+                        + '-a' + str(geometry.nr_projections)
         self.DATA_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY, 'LIDC-IDRI-transformed' + configuration)
         self.SAMPLE_DATA_DIRECTORY = utility.direc(PROJECT_DATA_DIRECTORY,
                                                    'LIDC-IDRI-sample-transformed' + configuration)
