@@ -1,8 +1,5 @@
 # Needed in this sequence
 import LIDCArtifactReduction
-from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn import \
-    PyronnParallelForwardprojectionRadonTransform
-
 LIDCArtifactReduction.init(gpu_id=0)
 # LIDCArtifactReduction.init(gpu_id=0, gpu_memory_limit_MB=6700)
 
@@ -12,6 +9,8 @@ from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeome
 from LIDCArtifactReduction.radon_transformation.radon_transformation_orig import ForwardprojectionParallelRadonTransform
 from LIDCArtifactReduction.dicom_preprocess import DicomLoader
 from LIDCArtifactReduction.offline_transformation import ResizeRescaleRadonOfflineTransformation
+from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn import \
+    PyronnParallelForwardprojectionRadonTransform
 
 # Some files
 

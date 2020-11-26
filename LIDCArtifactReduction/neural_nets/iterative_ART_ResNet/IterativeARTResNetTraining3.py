@@ -101,6 +101,10 @@ class IterativeARTResNetTraining(ModelInterface):
         reconstruction_output, error_sinogram = self._model(inputs, training=True)
         return reconstruction_output, bad_sinograms
 
+
+
+
+
     def _step_level(self, actual_reconstructions, bad_sinograms, good_reconstructions, total_loss):
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
@@ -112,24 +116,75 @@ class IterativeARTResNetTraining(ModelInterface):
 
         return reconstruction_output, bad_sinograms, good_reconstructions, total_loss
 
+    #@tf.function
     def _train_step(self, data):
         actual_reconstructions_0, bad_sinograms, good_reconstructions = input_data_decoder(data)
 
+        # actual_reconstructions_0 = tf.Variable(actual_reconstructions_0, trainable=False)
+        # bad_sinograms = tf.Variable(bad_sinograms, trainable=False)
+        # good_reconstructions = tf.Variable(good_reconstructions, trainable=False)
+
+        # with tf.GradientTape() as tape:
+        #     actual_reconstructions_final, _, _, total_loss = \
+        #         tf.while_loop(cond=lambda *args, **kwargs: True,
+        #                 # TODO: take out level
+        #                   maximum_iterations=5,
+        #                   body=self._step_level,
+        #                   loop_vars=(actual_reconstructions_0, bad_sinograms, good_reconstructions, tf.constant(0.0)),
+        #                   swap_memory=True)
+
+        # loss_gradient = tape.gradient(total_loss, self._model.trainable_variables)
+        # # Update weights
+        # self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
+
+        def step_level_i(i, actual_reconstructions, bad_sinograms, good_reconstructions, total_loss):
+        
+            inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
+                    IterativeARTResNet.sinos_input_name: bad_sinograms}
+
+            reconstruction_output, error_sinogram = self._model(inputs, training=True)
+            # TODO: refactor
+            from tensorflow.keras import losses
+            total_loss += losses.MeanSquaredError()(reconstruction_output, good_reconstructions)
+
+            return i+1, reconstruction_output, bad_sinograms, good_reconstructions, total_loss
+
         with tf.GradientTape() as tape:
-            actual_reconstructions_final, _, _, total_loss = \
-                tf.while_loop(cond=lambda *args, **kwargs: True,
-                        # TODO: take out level
-                          maximum_iterations=3,
-                          body=self._step_level,
-                          loop_vars=(actual_reconstructions_0, bad_sinograms, good_reconstructions, tf.constant(0.0)),
-                          # TODO: try allowing swapping
-                          swap_memory=False)
+            _, actual_reconstructions_final, _, _, total_loss = \
+                tf.while_loop(cond=lambda i, *args, **kwargs: i < 6,
+                          body=step_level_i,
+                          loop_vars=(0, actual_reconstructions_0, bad_sinograms, good_reconstructions, tf.constant(0.0)),
+                          swap_memory=True)
+
+        # with tf.GradientTape() as tape:
+        #     total_loss = tf.constant(0.0)
+        #     for _ in tf.range(5):
+        #         tf.autograph.experimental.set_loop_options(swap_memory=True)
+        #         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions_0,
+        #             IterativeARTResNet.sinos_input_name: bad_sinograms}
+
+        #         actual_reconstructions_0, error_sinogram = self._model(inputs, training=True)
+        #         # TODO: refactor
+        #         from tensorflow.keras import losses
+        #         total_loss += losses.MeanSquaredError()(actual_reconstructions_0, good_reconstructions)
 
         loss_gradient = tape.gradient(total_loss, self._model.trainable_variables)
         # Update weights
         self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
 
 
+        # actual_reconstructions_final, _, _, total_loss = \
+        #         tf.while_loop(cond=lambda *args, **kwargs: True,
+        #                 # TODO: take out level
+        #                   maximum_iterations=5,
+        #                   body=self._step_level,
+        #                   loop_vars=(actual_reconstructions_0, bad_sinograms, good_reconstructions, tf.constant(0.0)),
+        #                   # TODO: try allowing swapping
+        #                   swap_memory=False)
+
+        # loss_gradient = tf.gradients(total_loss, self._model.trainable_variables)
+        # # # Update weights
+        # self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
 
         # Update metrics
         for m in self._metrics_reconstruction:
