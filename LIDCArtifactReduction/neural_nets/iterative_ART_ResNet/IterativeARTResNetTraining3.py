@@ -151,7 +151,7 @@ class IterativeARTResNetTraining(ModelInterface):
 
         with tf.GradientTape() as tape:
             _, actual_reconstructions_final, _, _, total_loss = \
-                tf.while_loop(cond=lambda i, *args, **kwargs: i < 6,
+                tf.while_loop(cond=lambda i, *args, **kwargs: i < 4,
                           body=step_level_i,
                           loop_vars=(0, actual_reconstructions_0, bad_sinograms, good_reconstructions, tf.constant(0.0)),
                           swap_memory=True)
