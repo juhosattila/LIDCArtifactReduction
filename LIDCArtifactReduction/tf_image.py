@@ -270,19 +270,41 @@ def TV_square_diff_norm(imgs1: TensorLike, imgs2: TensorLike):
     return tf.reduce_mean(TV_square_diff_op(imgs1_tf, imgs2_tf))
 
 
-# TODO: refactor. Problem with dimensions. I do not know yet.
-def ssim_tf(imgs1, imgs2):
+def ssims_tf(imgs1, imgs2):
+    """Result is of shape (N,) or ()."""
     imgs1_tf = tf.convert_to_tensor(imgs1)
     imgs2_tf = tf.convert_to_tensor(imgs2)
+    # tf.image.ssim returns batch of ssims
     ssim_values = tf.image.ssim(imgs1_tf, imgs2_tf, max_val=5000.0 / parameters.HU_TO_CT_SCALING)
     return ssim_values
 
 
-def mean_absolute_error_tf(imgs1, imgs2):
-    imgs1_tf = tf.convert_to_tensor(imgs1)
-    imgs2_tf = tf.convert_to_tensor(imgs2)
-    return tf.reduce_mean(tf.abs(imgs1_tf-imgs2_tf))
-
-
 def shape_to_3D(imgs):
-    return tf.reshape(imgs, shape=tf.shape(imgs)[:3])
+    """Removes squeezable channel dimension, if there is one.
+    Args:
+        imgs: tensor or numpy array in custom format.
+    Returns:
+        If last dimension is squeezable, i.e. C=1, then it is removed.
+    """
+    imgs_tf = tf.convert_to_tensor(imgs)
+    if tf.shape(imgs_tf)[-1] == 1:
+        imgs_tf = tf.squeeze(imgs_tf, axis=[-1])
+    return imgs_tf
+
+
+def mean_absolute_errors_tf(imgs1, imgs2):
+    """Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
+    imgs1_tf = shape_to_3D(imgs1)
+    imgs2_tf = shape_to_3D(imgs2)
+    return tf.reduce_mean(tf.abs(imgs1_tf-imgs2_tf), axis=[-2, -1])
+
+
+def relative_errors_tf(y_true, y_pred):
+    """Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
+    return tf.norm(shape_to_3D(y_true - y_pred), axis=[-2, -1]) / tf.norm(shape_to_3D(y_true), axis=[-2, -1])
+
+
+def mean_squares_tf(imgs):
+    """Result is of shape (N,) or ()."""
+    imgs_tf = shape_to_3D(imgs)
+    return tf.reduce_mean(tf.square(imgs_tf), axis=[-2, -1])
