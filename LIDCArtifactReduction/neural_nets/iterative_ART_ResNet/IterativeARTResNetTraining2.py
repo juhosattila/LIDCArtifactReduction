@@ -72,12 +72,6 @@ class IterativeARTResNetTraining(ModelInterface):
         self._model.compile(optimizer=optimizers.Adam(lr))
 
 
-    # TODO: implement
-    def apply(self):
-        # kiertekel kezdeti iteraciokat es futtat halot k-szor
-        raise NotImplementedError()
-
-
     # Toggle, if performance needed.
     @tf.function
     def _predict_depth_generator_step(self, data_batch):
