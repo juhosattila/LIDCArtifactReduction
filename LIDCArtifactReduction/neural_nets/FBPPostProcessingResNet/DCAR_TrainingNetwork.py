@@ -70,7 +70,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                 mse_tv_weight=3.0):
         """
         Args:
-             sino_output_weight: if 'auto', it is specified as 1.0 / parameters.NR_OF_SPARSE_ANGLES
+             sino_output_weight: if 'auto', it is specified as 1.0 / self._radon_geometry.nr_projections
         """
         _sino_output_weight = sino_output_weight
         if _sino_output_weight == 'auto':

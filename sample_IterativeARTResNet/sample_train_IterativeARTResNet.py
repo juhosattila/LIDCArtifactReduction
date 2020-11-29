@@ -9,7 +9,7 @@ from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.generator.generator import LIDCDataGenerator
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTraining import IterativeARTResNetTraining
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTrainingV1 import IterativeARTResNetTrainingV1
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet_generator_transform import \
     IterativeARTResNetGeneratorTransform
 from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn import PyronnParallelARTRadonTransform
@@ -26,7 +26,8 @@ generator = LIDCDataGenerator(array_stream=array_stream, data_configuration_dir=
                             validation_split=0.1, test_split=0.1, batch_size=10)
 # For noisy transformations you may set lnI0 and sumscaling.
 noisy_transformer = IterativeARTResNetGeneratorTransform(geometry, radon_transform, add_noise=True,
-                                                         mode=4, lnI0=10*np.log(5), sum_scaling=5.0)
+                        output_data_formatter=IterativeARTResNetTrainingV1.output_data_formatter,
+                        mode=4, lnI0=10*np.log(5), sum_scaling=5.0)
 train_iterator = generator.get_new_train_iterator(noisy_transformer)
 
 # non_noisy_transformer = FBPConvnetGeneratorTransform(geometry, radon_transform, add_noise=False)
@@ -34,8 +35,8 @@ train_iterator = generator.get_new_train_iterator(noisy_transformer)
 
 resnet = IterativeARTResNet(radon_geometry=geometry, radon_transformation=radon_transform,
                              name='Sample_IterativeARTResNet')
-training_network = IterativeARTResNetTraining(radon_transformation=radon_transform, dir_system=ds,
-                                        target_model=resnet, name='Sample_IterativeARTResNet_Training')
+training_network = IterativeARTResNetTrainingV1(radon_transformation=radon_transform, dir_system=ds,
+                                                target_model=resnet, name='Sample_IterativeARTResNet_Training')
 
 # Optionally load weights. latest=True loads the most recent weightfile and ignores 'name'.
 #training_network.load_weights(name='Sample_IterativeARTResNet_Training')#latest=True)

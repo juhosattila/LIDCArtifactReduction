@@ -13,13 +13,12 @@ from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss \
     import IterativeARTRestNetTrainingLoss, RecSinoGradientLoss
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import input_data_decoder
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.iterator import RecSinoSuperIterator, RecSinoArrayIterator
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
 
-class IterativeARTResNetTraining(ModelInterface):
+class IterativeARTResNetTrainingV1(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
@@ -39,13 +38,27 @@ class IterativeARTResNetTraining(ModelInterface):
         target_imgs_output_layer, target_difference_layer = self._target_model.output_layer_or_layers
 
         radon_layer = ForwardRadonLayer(radon_transformation=self._radon_transformation,
-                                        name=IterativeARTResNetTraining.sinos_output_name)(target_difference_layer)
+                                        name=IterativeARTResNetTrainingV1.sinos_output_name)(target_difference_layer)
 
         self._model = Model(
             inputs=[target_imgs_input_layer, target_sinos_input_layer],
             outputs=[target_imgs_output_layer, radon_layer],
             name=self._target_model.name
         )
+
+
+    @staticmethod
+    def output_data_formatter(actual_reconstructions, bad_sinograms, good_reconstructions, **kwargs):
+        return {IterativeARTResNet.imgs_input_name: actual_reconstructions,
+                IterativeARTResNet.sinos_input_name: bad_sinograms,
+                IterativeARTResNet.resnet_name: good_reconstructions}
+
+
+    @staticmethod
+    def input_data_decoder(data):
+        return data[IterativeARTResNet.imgs_input_name], \
+               data[IterativeARTResNet.sinos_input_name], \
+               data[IterativeARTResNet.resnet_name]
 
 
     # TODO: provide meaningful defaults
@@ -75,7 +88,8 @@ class IterativeARTResNetTraining(ModelInterface):
     # Toggle, if performance needed.
     @tf.function
     def _predict_depth_generator_step(self, data_batch):
-        actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data_batch)
+        actual_reconstructions, bad_sinograms, good_reconstructions = \
+            IterativeARTResNetTrainingV1.input_data_decoder(data_batch)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 
@@ -116,83 +130,12 @@ class IterativeARTResNetTraining(ModelInterface):
         new_data_iterator = RecSinoArrayIterator(new_actual, new_sino, new_good_reco)
         return self.predict_depth_generator(new_data_iterator, depth - 1, steps=None, progbar=progbar)
 
-    # TODO: implement entire loss function
-    def _loss_function(self, actual_reconstructions, bad_sinograms, good_reconstructions):
-        inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
-                  IterativeARTResNet.sinos_input_name: bad_sinograms}
-
-        with tf.GradientTape(persistent=True) as tape:
-            tape.watch(actual_reconstructions)
-            reconstruction_output, error_sinogram = self._model(inputs, training=True)
-            from tensorflow.keras import losses
-            loss = losses.MeanSquaredError()(reconstruction_output, good_reconstructions)
-
-        loss_gradient = tape.gradient(loss, self._model.trainable_variables)
-
-        return reconstruction_output, loss_gradient, tape
-
-    def _train_step_2iters(self, data):
-        actual_reconstructions_0, bad_sinograms, good_reconstructions = input_data_decoder(data)
-
-
-        # 1.
-        actual_reconstructions_1, der_level_loss_W_0, tape0 = \
-            self._loss_function(actual_reconstructions_0, bad_sinograms, good_reconstructions)
-        loss_gradient = der_level_loss_W_0
-
-        # 2.
-        actual_reconstructions_2, der_level_loss_W_1, tape1 = \
-            self._loss_function(actual_reconstructions_1, bad_sinograms, good_reconstructions)
-        der_level_loss_x_1 = tape1.gradient(der_level_loss_W_1, actual_reconstructions_1)
-        # TODO: probably separate function with tf.function decorator
-        vjp_1 = tape0.gradient(actual_reconstructions_1, self._model.trainable_variables,
-                               output_gradients=der_level_loss_x_1)
-        loss1 = der_level_loss_W_1 + vjp_1
-        loss_gradient += loss1
-
-        # Update weights
-        self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
-
-        # Update metrics
-        for m in self._metrics_reconstruction:
-            m.update_state(good_reconstructions, actual_reconstructions_1)
-            m.update_state(good_reconstructions, actual_reconstructions_2)
-        # for m in self._metrics_error_sino:
-        #     m.update_state(errors_sinogram)
-        # for m in self._metrics_gradient:
-        #     m.update_state(doutput_dinput)
-
-        # If you had compiled metrics.
-        # self.compiled_metrics.update_state(good_reconstructions, reconstructions_output)
-
-        # For overriding train_step in Tf>=2.2 return a dict mapping metric names to current value
-        # return {m.name: m.result() for m in self.metrics}
-
-    def train2(self, train_iterator, epochs, steps_per_epoch):
-        print(f"Training network {self.name}.")
-        for epoch in range(epochs):
-            print(f"Epoch {epoch}:")
-            progbar = Progbar(steps_per_epoch, verbose=1, stateful_metrics=[m.name for m in self._all_metrics])
-            for step in range(1, steps_per_epoch + 1):
-                data = next(train_iterator)
-                self._train_step_2iters(data)
-
-                if step % 1 == 0:
-                    progbar.update(step, values=[(m.name, m.result().numpy()) for m in self._all_metrics])
-
-            print("Saving model")
-            self._model.save_weights(
-                filepath=os.path.join(self._weight_dir, self._name) + '-' + self._monitored_metric.name + '-' +
-                         '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
-
-            for m in self._all_metrics:
-                m.reset_states()
-            # Possible validation could be added here.
 
     # Toggle for debugging or deployment.
     @tf.function
-    def _train_step(self, data):
-        actual_reconstructions, bad_sinograms, good_reconstructions = input_data_decoder(data)
+    def _train_depth_step(self, data):
+        actual_reconstructions, bad_sinograms, good_reconstructions = \
+            IterativeARTResNetTrainingV1.input_data_decoder(data)
         inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
                   IterativeARTResNet.sinos_input_name: bad_sinograms}
 

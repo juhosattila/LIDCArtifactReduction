@@ -9,6 +9,7 @@ class IterativeARTRestNetTrainingLoss:
     def __call__(self, **kwargs):
         pass
 
+
 class RecSinoGradientLoss(IterativeARTRestNetTrainingLoss):
     def __init__(self, reconstructions_output_weight, error_singrom_weight, gradient_weight):
         self._reconstructions_output_weight = tf.convert_to_tensor(reconstructions_output_weight, dtype=tf.float32)
