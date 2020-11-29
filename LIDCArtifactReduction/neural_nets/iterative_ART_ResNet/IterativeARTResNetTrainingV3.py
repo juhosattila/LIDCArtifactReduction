@@ -141,7 +141,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
                     reconstruction_output, kernel_error_output, radon_output = self._model(inputs, training=True)
 
                 tangent_der = acc.jvp(reconstruction_output)
-                total_loss += self.gradient_weight * tangent_der
+                total_loss += self.gradient_weight * tf.reduce_mean(tf.square(tangent_der))
                 for m in self._metrics_gradient:
                     m.update_state(tangent_der)
 
