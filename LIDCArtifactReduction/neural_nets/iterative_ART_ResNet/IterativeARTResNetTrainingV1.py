@@ -6,6 +6,7 @@ from tensorflow.keras import Model
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
+from tensorflow_core.python.keras.preprocessing.image import Iterator as KerasImgIterator
 
 from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
@@ -13,7 +14,6 @@ from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss \
     import IterativeARTRestNetTrainingLoss, RecSinoGradientLoss
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.iterator import RecSinoSuperIterator, RecSinoArrayIterator
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
@@ -244,3 +244,29 @@ class IterativeARTResNetTrainingV1(ModelInterface):
 
             # In upcoming levels we start from epoch 1.
             _start_epoch = 1
+
+
+class RecSinoArrayIterator(KerasImgIterator):
+    def __init__(self, actual_reconstructions_batches, sinograms_batches, good_reconstructions_batches):
+        super().__init__(len(actual_reconstructions_batches), 1, shuffle=False, seed=None)
+        self._actual_reconstructions_batches = actual_reconstructions_batches
+        self._sinograms_batches = sinograms_batches
+        self._good_reconstructions_batches = good_reconstructions_batches
+
+    def _get_batches_of_transformed_samples(self, index_array):
+        idx = index_array[0]
+        return IterativeARTResNetTrainingV1.output_data_formatter(
+            actual_reconstructions=tf.convert_to_tensor(self._actual_reconstructions_batches[idx], dtype=tf.float32),
+            bad_sinograms=tf.convert_to_tensor(self._sinograms_batches[idx], dtype=tf.float32),
+            good_reconstructions=tf.convert_to_tensor(self._good_reconstructions_batches[idx], dtype=tf.float32)
+        )
+
+
+class RecSinoSuperIterator(KerasImgIterator):
+    def __init__(self, iterators):
+        self._iterators = iterators
+        super().__init__(len(iterators), batch_size=1, shuffle=True, seed=None)
+
+    def _get_batches_of_transformed_samples(self, index_array):
+        idx = index_array[0]
+        return next(self._iterators[idx])
