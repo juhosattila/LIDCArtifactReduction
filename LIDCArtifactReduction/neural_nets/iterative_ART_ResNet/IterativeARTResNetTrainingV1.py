@@ -6,7 +6,7 @@ from tensorflow.keras import Model
 from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
-from tensorflow_core.python.keras.preprocessing.image import Iterator as KerasImgIterator
+from tensorflow.keras.preprocessing.image import Iterator as KerasImgIterator
 
 from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
@@ -152,17 +152,15 @@ class IterativeARTResNetTrainingV1(ModelInterface):
                 # reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
                 reconstructions_output, errors_sinogram = self._model(inputs, training=True)
                 # reconstructions_output, errors_sinogram = self([reconstructions_output, bad_sinograms], training=True)
-
-            # TODO: delete unnecessary prints
-            print("-----SHAPES----")
-            print(tf.shape(actual_reconstructions))
-            print(tf.shape(reconstructions_output))
-
             doutput_dinput = acc.jvp(reconstructions_output)
 
-            print(tf.shape(doutput_dinput))
-            print("-----SHAPES END----")
-            # doutput_dinput = [grad if grad is not None else tf.zeros_like(var) for grad, var in zip(doutput_dinput, actual_reconstructions)]
+
+            # First fully wrong solution. Gradient is not correct.
+            # with tf.GradientTape(watch_accessed_variables=False) as tape2:
+            #     tape2.watch(actual_reconstructions)
+            #     #reconstructions_output, errors_sinogram = self([actual_reconstructions, bad_sinograms], training=True)
+            #     reconstructions_output, errors_sinogram = self(inputs, training=True)
+            # doutput_dinput = tape2.gradient(reconstructions_output, actual_reconstructions)
 
             lossvalue = self._custom_loss(
                 reconstructions_output=reconstructions_output,
