@@ -96,6 +96,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
         self._metrics_iteration_reconstructions = []
         for i in range(self.final_level):
             self._metrics_iteration_reconstructions.append(metrics.MeanSquaredError(f'rec_mse_{i+1}'))
+        self._all_metrics += self._metrics_iteration_reconstructions
         self._metrics_final_reconstruction = [HU_MAE('rec_HU_mae'),
                                               RadioSNR('rec_snr'),
                                               SSIM('rec_ssim'),
@@ -147,7 +148,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
             else:
                 reconstruction_output, kernel_error_output, radon_output = self._model(inputs, training=True)
 
-            loss_amplifier = self.reconstruction_weight_amplifier ** tf.cast(i, dtype=tf.float32)
+            loss_amplifier = self.reconstructions_output_weight * self.reconstruction_weight_amplifier ** tf.cast(i, dtype=tf.float32)
             total_loss += loss_amplifier * mse(reconstruction_output, good_reconstructions)
 
             self._metrics_iteration_reconstructions[i].update_state(good_reconstructions, reconstruction_output)
@@ -162,11 +163,11 @@ class IterativeARTResNetTrainingV3(ModelInterface):
                 for m in self._metrics_kernel_error:
                     m.update_state(kernel_error_output)
 
-            return i+1, reconstruction_output, bad_sinograms, good_reconstructions, total_loss
+            return i+1, reconstruction_output, total_loss
 
 
         with tf.GradientTape() as tape:
-            _, actual_reconstructions_final, _, _, total_loss = \
+            _, actual_reconstructions_final, total_loss = \
                 tf.while_loop(cond=lambda i, *args, **kwargs: i < self.final_level,
                           body=step_level_i,
                           loop_vars=(0, actual_reconstructions_0, tf.constant(0.0)),

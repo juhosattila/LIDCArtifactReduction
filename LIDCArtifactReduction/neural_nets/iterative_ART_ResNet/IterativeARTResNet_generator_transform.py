@@ -10,7 +10,7 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
     def __init__(self, geometry: RadonGeometry, radon_transform: ARTRadonTransform,
                  output_data_formatter,
                  mode: int = 4,
-                 add_noise: bool = True, lnI0=10 * np.log(5), sum_scaling=5.0,
+                 add_noise: bool = True, lnI0=5 * np.log(10), sum_scaling=5.0,
                  test_mode: bool = False):
         super().__init__(geometry=geometry,
                          add_noise=add_noise, lnI0=lnI0, sum_scaling=sum_scaling,
@@ -21,8 +21,8 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
 
     def transform(self, reconstructions, sinograms):
         reconstructions_tf = tf.convert_to_tensor(reconstructions, dtype=tf.float32)
-        bad_sinograms_tf = tf.convert_to_tensor(sinograms, dtype=tf.float32)
-        bad_sinograms_tf = self.generate_sinogram_noise(bad_sinograms_tf) if self._add_noise else bad_sinograms_tf
+        sinograms_tf = tf.convert_to_tensor(sinograms, dtype=tf.float32)
+        bad_sinograms_tf = self.generate_sinogram_noise(sinograms_tf) if self._add_noise else sinograms_tf
 
         if self._test_mode:
             return reconstructions, sinograms, bad_sinograms_tf.numpy()
@@ -34,4 +34,5 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
         return self.output_data_formatter(
             actual_reconstructions=actual_reconstructions_tf,
             bad_sinograms=bad_sinograms_tf,
-            good_reconstructions=reconstructions_tf)
+            good_reconstructions=reconstructions_tf,
+            good_sinograms=sinograms_tf)

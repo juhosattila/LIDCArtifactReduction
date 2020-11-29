@@ -21,7 +21,7 @@ class LIDCDataGenerator:
     def __init__(self, array_stream: ArrayStream, data_configuration_dir,
                  validation_split=0.1, test_split=0.1, batch_size=16,
                  shuffle : bool = True,
-                 verbose : bool = False,
+                 verbose : bool = True,
                  load_data_config : bool or str = False):
         """
         Args:
