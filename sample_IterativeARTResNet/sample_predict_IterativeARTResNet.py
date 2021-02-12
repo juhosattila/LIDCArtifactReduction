@@ -11,11 +11,10 @@ from LIDCArtifactReduction.array_streams import RecSinoArrayStream
 from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.generator.generator import LIDCDataGenerator
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTraining import IterativeARTResNetTraining
+from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNetTrainingV1 import IterativeARTResNetTrainingV1
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet_generator_transform import \
     IterativeARTResNetGeneratorTransform
 from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn import PyronnParallelARTRadonTransform
-from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.data_formatter import input_data_decoder
 from LIDCArtifactReduction.utility import show_grey
 
 
@@ -34,8 +33,8 @@ test_iterator = generator.get_new_test_iterator(noisy_transformer)
 
 resnet = IterativeARTResNet(radon_geometry=geometry, radon_transformation=radon_transform,
                             name='Sample_IterativeARTResNet')
-training_network = IterativeARTResNetTraining(radon_transformation=radon_transform, dir_system=ds,
-                                        target_model=resnet, name='Sample_IterativeARTResNet_Training')
+training_network = IterativeARTResNetTrainingV1(radon_transformation=radon_transform, dir_system=ds,
+                                                target_model=resnet, name='Sample_IterativeARTResNet_Training')
 # Load weights. latest=True loads the most recent weightfile and ignores 'name'.
 training_network.load_weights(name='Sample_IterativeARTResNet_Training51.619')#latest=True)
 

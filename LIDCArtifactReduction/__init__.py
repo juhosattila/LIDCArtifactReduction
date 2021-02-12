@@ -18,21 +18,21 @@ def init(gpu_id=0, gpu_memory_limit_MB=None):
         # sys.path.insert(1, "/home/juhosa/python-packages")
         # print(sys.path)
 
-        physical_gpus = tf.config.experimental.list_physical_devices('GPU')
+        physical_gpus = tf.config.list_physical_devices('GPU')
         used_physical_gpu = physical_gpus[gpu_id]
         tf.config.set_visible_devices([used_physical_gpu], 'GPU')
         try:
             if gpu_memory_limit_MB is not None:
-
-                tf.config.experimental.set_virtual_device_configuration(used_physical_gpu,
-                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_memory_limit_MB)])
+                tf.config.set_logical_device_configuration(used_physical_gpu,
+                    [tf.config.LogicalDeviceConfiguration(memory_limit=gpu_memory_limit_MB)])
                 print("Tensorflow: memory limit is set to {}".format(gpu_memory_limit_MB))
 
             # # TODO: somwhow solve this issue with PyPi pyronn package.
             # tf.config.experimental.set_memory_growth(gpus[0], True)
             # print("Tensorflow: memory_growth is set to True")
 
-            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            logical_gpus = tf.config.list_logical_devices('GPU')
+            logical_cpus = tf.config.list_logical_devices('CPU')
         except RuntimeError as e:
             print(e)
 

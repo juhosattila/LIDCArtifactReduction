@@ -21,7 +21,7 @@ class LIDCDataGenerator:
     def __init__(self, array_stream: ArrayStream, data_configuration_dir,
                  validation_split=0.1, test_split=0.1, batch_size=16,
                  shuffle : bool = True,
-                 verbose : bool = False,
+                 verbose : bool = True,
                  load_data_config : bool or str = False):
         """
         Args:
@@ -56,7 +56,7 @@ class LIDCDataGenerator:
 
         else:
             if self._load_data_configuration is True:  # load previously created data
-                latest = self._load_data_configuration
+                latest = True
                 filename = None
                 if verbose:
                     print("### LIDC Generator ###")
@@ -69,8 +69,8 @@ class LIDCDataGenerator:
                 print("-----------------------------")
                 print("Found data configuration, loading specified: {}".format(self._load_data_configuration))
                 print("-----------------------------")
-                filename = self._load_data_configuration
                 latest = False
+                filename = self._load_data_configuration
 
             train_directories, valid_directories, test_directories = \
                 self._load_data_config(filename=filename, latest=latest)
