@@ -34,7 +34,7 @@ class SumSquaredError(MeanBasedMetric):
         super().__init__(name, dtype=dtype)
 
     def _objective_function(self, y_true, y_pred):
-        return tf.reduce_sum(tf.square(y_true-y_pred), axis=range(1,tf.rank(imgs)))
+        return tf.reduce_sum(tf.square(y_true-y_pred), axis=range(1,tf.rank(y_true)))
 
 
 class HU_RMSE(RootMeanSquaredError):
