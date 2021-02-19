@@ -77,6 +77,3 @@ class IterativeARTResNet(ModelInterface):
 
     def compile(self):
         raise NotImplementedError()
-
-    def set_training(self, training: bool):
-        raise NotImplementedError()

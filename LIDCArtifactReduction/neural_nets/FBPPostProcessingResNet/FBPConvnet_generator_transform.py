@@ -25,7 +25,7 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
 
         return self._output_format_manager(bad_reconstructions, reconstructions, sinograms)
 
-    # TODO: probably should be provided directly by network. Similarly in all other spots.
+    # TODO: probably should be provided directly by network. Similarly to all other spots.
     def _output_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms):
         # TODO: if upgraded to TF 2.2 remove [None]
         # These 'None'-s correspond to weights attached to the outputs.
