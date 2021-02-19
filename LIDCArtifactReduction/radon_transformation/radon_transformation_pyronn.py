@@ -62,6 +62,7 @@ class PyronnParallelBackprojectionRadonTransform(BackprojectionRadonTransform):
         return recos_4D
 
 
+# TODO: this needs refactoring as there is code duplication. Should be somehow inherited from two classes above.
 class PyronnParallelRadonTransform(RadonTransform):
     def __init__(self, radon_geometry: RadonGeometry):
         self._geometry = get_pyronn_geometry(radon_geometry)

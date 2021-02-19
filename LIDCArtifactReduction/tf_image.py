@@ -162,7 +162,7 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
     return scale_HU2Radio(zeroed_out_tf)
 
 
-def total_variation_op(imgs: TensorLike, eps=0.0):
+def _total_variation_field(imgs: TensorLike, eps=0.0):
     eps_tf = tf.convert_to_tensor(eps, dtype=tf.float32)
     imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
     imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
@@ -178,7 +178,7 @@ def total_variation_sum_norm(imgs: TensorLike):
     Args:
          imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
-    total_variation = total_variation_op(imgs)
+    total_variation = _total_variation_field(imgs)
     tv_norm = tf.reduce_sum(total_variation, axis=[1, 2, 3])
 
     # For testing
@@ -193,7 +193,7 @@ def total_variation_mean_norm(imgs: TensorLike):
     Args:
          imgs: Should be a 3D NHW or 4D NHWC tensor with C=1.
     """
-    total_variation = total_variation_op(imgs)
+    total_variation = _total_variation_field(imgs)
     tv_norm = tf.reduce_mean(total_variation, axis=[1, 2, 3])
 
     # For testing.
@@ -202,12 +202,21 @@ def total_variation_mean_norm(imgs: TensorLike):
     return tv_norm
 
 
-class TotalVariationNormObjectiveFunction:
-    def __call__(self, imgs: TensorLike):
-        return total_variation_mean_norm(imgs)
+def _total_variation_field_squared(imgs: TensorLike):
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
+    diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
+    diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
+    total_variation = (tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
+    return total_variation
 
 
-def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
+def total_variation_squared_mean_norm(imgs: TensorLike):
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    return tf.reduce_mean(_total_variation_field_squared(imgs_tf))
+
+
+def reweighted_total_variation_sum_norm(imgs: TensorLike, delta : float):
     """Get reweighted total variation norm of imgs.
 
     Args:
@@ -217,7 +226,7 @@ def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     Returns:
         1D tensor of reweighted total variation norms.
     """
-    total_variation = total_variation_op(imgs)
+    total_variation = _total_variation_field(imgs)
     reweighted_tv = total_variation / (total_variation + delta)
 
     reweighted_tv_norm = tf.reduce_sum(reweighted_tv, axis=[1, 2, 3])
@@ -228,46 +237,23 @@ def reweighted_total_variation_norm(imgs: TensorLike, delta : float):
     return reweighted_tv_norm
 
 
-def sparsity_sum_operator(imgs: TensorLike, eps: float):
-    return tf.reduce_sum(tf.math.log(imgs + eps))
-
-
 def sparsity_mean_operator(imgs: TensorLike, eps: float):
     return tf.reduce_mean(tf.math.log(imgs + eps))
 
 
-def sparse_total_variation_objective_function(imgs: TensorLike, eps: float):
+def logarithmic_total_variation_objective_function(imgs: TensorLike, eps: float):
     # Eps is used in TV gradients, because derivatives were becoming 0/0 after a while.
     # Think about reducing eps.
-    total_variation = total_variation_op(imgs, eps=1e-3)
+    total_variation = _total_variation_field(imgs, eps=1e-3)
     return sparsity_mean_operator(total_variation, eps)
 
 
-class SparseTotalVariationObjectiveFunction:
+class LogarithmicTotalVariationObjectiveFunction:
     def __init__(self, eps: float):
         self.eps = eps
 
     def __call__(self, imgs):
-        return sparse_total_variation_objective_function(imgs, self.eps)
-
-
-def total_variation_square_op(imgs: TensorLike):
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
-    diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
-    diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
-    total_variation = (tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
-    return total_variation
-
-
-def TV_square_diff_op(imgs1: TensorLike, imgs2: TensorLike):
-    return total_variation_square_op(imgs1 - imgs2)
-
-
-def TV_square_diff_norm(imgs1: TensorLike, imgs2: TensorLike):
-    imgs1_tf = tf.convert_to_tensor(imgs1)
-    imgs2_tf = tf.convert_to_tensor(imgs2)
-    return tf.reduce_mean(TV_square_diff_op(imgs1_tf, imgs2_tf))
+        return logarithmic_total_variation_objective_function(imgs, self.eps)
 
 
 def ssims_tf(imgs1, imgs2):

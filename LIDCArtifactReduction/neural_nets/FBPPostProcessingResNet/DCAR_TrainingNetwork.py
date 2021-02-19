@@ -12,7 +12,7 @@ from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
-from LIDCArtifactReduction.tf_image import SparseTotalVariationObjectiveFunction
+from LIDCArtifactReduction.tf_image import LogarithmicTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_TargetInterface
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
@@ -78,25 +78,29 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # Losses
         if add_total_variation and not self._total_variation_loss_set:
-            tot_var_regualizer = SparseTotalVariationObjectiveFunction(total_variation_eps)
+            tot_var_regualizer = LogarithmicTotalVariationObjectiveFunction(total_variation_eps)
 
             self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
             self._total_variation_loss_set = True
 
 
-        # There are two loss settings. The second one contains a TV squared loss on the edge-differenceimage in order to
-        # preserve edges.
-        # Think about using normal TV non-squared norm rather than TV squared loss.
-
+        # Loss settings:
 
         # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
         #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
 
-        losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-                      LIDCArtifactReduction.losses.MSE_TV_square_diff_loss(tv_weight=mse_tv_weight,
-                                                                           name='mse_tv_square_diff'),
-                  DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
 
+        # The second one contains a TV L2 squared loss on the differenceimage in order to preserve edges.
+        # losses = {DCAR_TrainingNetwork.reconstruction_output_name:
+        #               LIDCArtifactReduction.losses.MSE_TV_squared_diff_loss(tv_weight=mse_tv_weight,
+        #                                                                     name='mse_tv_square_diff'),
+        #           DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
+
+        # Third setting: TV L1.
+        losses = {DCAR_TrainingNetwork.reconstruction_output_name:
+                      LIDCArtifactReduction.losses.MSE_TV_diff_loss(tv_weight=mse_tv_weight,
+                                                                            name='mse_tv_square_diff'),
+                  DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
 
 
         loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
