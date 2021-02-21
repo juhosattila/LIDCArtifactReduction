@@ -84,6 +84,7 @@ class DCAR_TrainingNetwork(ModelInterface):
             self._total_variation_loss_set = True
 
 
+        # TODO: if necessary, make it switcheable from API
         # Loss settings:
 
         # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
