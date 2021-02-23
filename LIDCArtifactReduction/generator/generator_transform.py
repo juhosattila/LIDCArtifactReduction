@@ -38,6 +38,9 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         pmax = self._geometry.volume_img_width * 1000.0 / parameters.HU_TO_CT_SCALING
 
         # Scaling defines how much the maximum sinogramvalue is related to lnI0.
+        # Important: scaling is used on sinogram, so that value domains match with ln I0. At the end we invert scaling.
+        # First there is mulitplication with 1/scale, at the very end multiplication with scale.
+        # Remember, that the domain of the sinogram is chosen by us and not directly related to ln I0.
         scale = 1000.0 / parameters.HU_TO_CT_SCALING * self._geometry.volume_img_width / self.sum_scaling
 
         # scaling of noise deviation parameter

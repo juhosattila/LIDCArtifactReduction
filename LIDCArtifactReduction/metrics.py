@@ -1,7 +1,6 @@
 from abc import abstractmethod
 
 import tensorflow as tf
-from networkx.algorithms.approximation.kcomponents import _same
 from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters, tf_image
@@ -85,7 +84,7 @@ class MeanSumSquare(Mean):
         super().__init__(name, dtype=dtype)
 
     def update_state(self, imgs, sample_weight=None):
-        values = tf.reduce_sum(tf.square(imgs), axis=range(1,tf.rank(imgs)))
+        values = tf.reduce_sum(tf.square(imgs), axis=range(1, tf.rank(imgs)))
         super().update_state(values=values, sample_weight=sample_weight)
 
 
