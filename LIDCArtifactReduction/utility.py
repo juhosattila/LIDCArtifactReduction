@@ -56,7 +56,7 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
             filename = os.path.join(directory, save_names[idx] + '.png')
             plt.imsave(arr=img, fname=filename, cmap=cmap, **normargs)
             # print(filename)
-        # plt.show()
+        plt.show()
 
 
 def analyse(arrs, names=None):

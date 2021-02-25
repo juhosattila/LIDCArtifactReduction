@@ -22,6 +22,7 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         """
         self._geometry = geometry
 
+        # TODO: change publicity
         self._add_noise = add_noise
         self._test_mode = test_mode
 

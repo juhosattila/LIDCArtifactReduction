@@ -52,6 +52,7 @@ class HU_MAE(MeanAbsoluteError):
         return scale_Radio2HU(super().result())
 
 
+# TODO: completely nonsense to take SNR of mean, instead of mean of SNRs
 class RadioSNR(MeanSquaredError):
     def __init__(self, name='RadioSNR', dtype=None):
         super().__init__(name, dtype=dtype)
