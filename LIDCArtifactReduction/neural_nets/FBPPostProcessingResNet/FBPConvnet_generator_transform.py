@@ -17,7 +17,7 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
         self._radon_transform = radon_transform
 
     def transform(self, reconstructions, sinograms):
-        noisy_sinograms = self.generate_sinogram_noise(sinograms) if self._add_noise else sinograms
+        noisy_sinograms = self.generate_sinogram_noise(sinograms) if self.add_noise else sinograms
         bad_reconstructions = self._radon_transform.invert(noisy_sinograms)
 
         if self._test_mode:

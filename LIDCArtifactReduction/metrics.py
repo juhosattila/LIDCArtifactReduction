@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters, tf_image
-from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssims_tf, mean_squares_tf
+from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssims_tf, mean_squares_tf, shape_to_4D
 
 
 class MeanBasedMetric(Metric):
@@ -53,14 +53,34 @@ class HU_MAE(MeanAbsoluteError):
 
 
 # TODO: completely nonsense to take SNR of mean, instead of mean of SNRs
-class RadioSNR(MeanSquaredError):
-    def __init__(self, name='RadioSNR', dtype=None):
+# class RadioSNR(MeanSquaredError):
+#     def __init__(self, name='RadioSNR', dtype=None):
+#         super().__init__(name, dtype=dtype)
+#
+#     def result(self):
+#         # to make it a usual SNR definition:
+#         multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
+#         return multiplier * tf.math.log( tf.square(1000.0 / parameters.HU_TO_CT_SCALING) / (super().result()) )
+
+class ReconstructionReference2Noise(MeanBasedMetric):
+    def __init__(self, name='rec_ref2noise', dtype=None):
         super().__init__(name, dtype=dtype)
 
-    def result(self):
-        # to make it a usual SNR definition:
+    def _objective_function(self, y_true, y_pred):
+        ref = 1000.0 / parameters.HU_TO_CT_SCALING
         multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
-        return multiplier * tf.math.log( tf.square(1000.0 / parameters.HU_TO_CT_SCALING) / (super().result()) )
+        return multiplier * tf.math.log( tf.square(ref) /
+                                         tf.reduce_mean(shape_to_4D(tf.square(y_true - y_pred)), axis=[1, 2, 3]) )
+
+# TODO: check dimension of objective
+class Signal2Noise(MeanBasedMetric):
+    def __init__(self, name='signal2noise', dtype=None):
+        super().__init__(name, dtype=dtype)
+
+    def _objective_function(self, y_true, y_pred):
+        multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
+        return multiplier * tf.math.log( tf.reduce_mean(shape_to_4D(tf.square(y_true)), axis=[1, 2, 3]) /
+                                         tf.reduce_mean(shape_to_4D(tf.square(y_true - y_pred)), axis=[1, 2, 3]) )
 
 
 class SSIM(MeanBasedMetric):

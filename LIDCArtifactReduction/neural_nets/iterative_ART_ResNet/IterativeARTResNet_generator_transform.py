@@ -22,7 +22,7 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
     def transform(self, reconstructions, sinograms):
         reconstructions_tf = tf.convert_to_tensor(reconstructions, dtype=tf.float32)
         sinograms_tf = tf.convert_to_tensor(sinograms, dtype=tf.float32)
-        bad_sinograms_tf = self.generate_sinogram_noise(sinograms_tf) if self._add_noise else sinograms_tf
+        bad_sinograms_tf = self.generate_sinogram_noise(sinograms_tf) if self.add_noise else sinograms_tf
 
         if self._test_mode:
             return reconstructions, sinograms, bad_sinograms_tf.numpy()

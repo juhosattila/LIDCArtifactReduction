@@ -22,14 +22,28 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         """
         self._geometry = geometry
 
-        # TODO: change publicity
-        self._add_noise = add_noise
+        self.add_noise = add_noise
+        self.lnI0 = lnI0
+        self.sum_scaling = sum_scaling
+
         self._test_mode = test_mode
-
-        self.lnI0 = self.as_array(lnI0)
-        self.sum_scaling = self.as_array(sum_scaling)
-
         self._analysed = False
+
+    @property
+    def lnI0(self):
+        return self._lnI0
+    @lnI0.setter
+    def lnI0(self, value):
+        self._lnI0 = self.as_array(value)
+
+    @property
+    def sum_scaling(self):
+        return self._sum_scaling
+
+    @sum_scaling.setter
+    def sum_scaling(self, value):
+        self._sum_scaling = self.as_array(value)
+
 
     def generate_sinogram_noise(self, sino):
         """See documentation for explananation."""

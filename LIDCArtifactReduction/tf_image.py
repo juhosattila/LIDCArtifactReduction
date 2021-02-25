@@ -270,12 +270,23 @@ def shape_to_3D(imgs):
     Args:
         imgs: tensor or numpy array in custom format.
     Returns:
-        If last dimension is squeezable, i.e. C=1, then it is removed.
+        Tensor. If last dimension is squeezable, i.e. C=1, then it is removed.
     """
     imgs_tf = tf.convert_to_tensor(imgs)
     if tf.shape(imgs_tf)[-1] == 1:
         imgs_tf = tf.squeeze(imgs_tf, axis=[-1])
     return imgs_tf
+
+
+# TODO: ket helyre beir
+def shape_to_4D(imgs):
+    """Add channel dimension with C=1, if there is not one.
+    Args:
+        imgs: tensor or numpy array in NHW or NHWC, C=1 format.
+    Returns:
+        Tensor in NHWC format."""
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    return tf.reshape( imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0) )
 
 
 def mean_absolute_errors_tf(imgs1, imgs2):
