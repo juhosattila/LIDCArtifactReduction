@@ -14,17 +14,15 @@ class LIDCGeneratorTransform:
 
 class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
     def __init__(self, geometry: RadonGeometry,
-                 add_noise: bool, lnI0, sum_scaling, test_mode: bool):
-        """
-        lnI0 and sum_scaling should changed together. For example:
-        lnI0 = 5 * self.log(10)
-        sum_scaling = 5.0
-        """
+                 add_noise: bool, lnI0, sigma=0.3, sum_scaling=5.0, test_mode: bool=False):
+
         self._geometry = geometry
 
         self.add_noise = add_noise
         self.lnI0 = lnI0
         self.sum_scaling = sum_scaling
+        # scaling of noise deviation parameter
+        self.sigma = sigma
 
         self._test_mode = test_mode
         self._analysed = False
@@ -58,11 +56,10 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         # Remember, that the domain of the sinogram is chosen by us and not directly related to ln I0.
         scale = 1000.0 / parameters.HU_TO_CT_SCALING * self._geometry.volume_img_width / self.sum_scaling
 
-        # scaling of noise deviation parameter
-        alfa = 0.3
+
 
         # deviation of noise
-        sigma_I0 = self.as_array(alfa * self.exp(self.lnI0 - 1.0 / scale * pmax))
+        sigma_I0 = self.as_array(self.sigma * self.exp(self.lnI0 - 1.0 / scale * pmax))
 
         I_normal_noise = self.random_normal(mean=0.0, stddev=sigma_I0, size=self.shape(sino))
         lnI = self.lnI0 - 1.0 / scale * sino

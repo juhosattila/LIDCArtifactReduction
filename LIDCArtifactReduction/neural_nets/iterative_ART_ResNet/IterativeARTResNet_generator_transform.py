@@ -10,10 +10,10 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
     def __init__(self, geometry: RadonGeometry, radon_transform: ARTRadonTransform,
                  output_data_formatter,
                  mode: int = 4,
-                 add_noise: bool = True, lnI0=5 * np.log(10), sum_scaling=5.0,
+                 add_noise: bool = True, lnI0=5 * np.log(10), sigma=0.3, sum_scaling=5.0,
                  test_mode: bool = False):
         super().__init__(geometry=geometry,
-                         add_noise=add_noise, lnI0=lnI0, sum_scaling=sum_scaling,
+                         add_noise=add_noise, lnI0=lnI0, sigma=0.3, sum_scaling=sum_scaling,
                          test_mode=test_mode)
         self._radon_transform = radon_transform
         self._mode = mode  # Later FBP could be added.
