@@ -56,8 +56,6 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
         # Remember, that the domain of the sinogram is chosen by us and not directly related to ln I0.
         scale = 1000.0 / parameters.HU_TO_CT_SCALING * self._geometry.volume_img_width / self.sum_scaling
 
-
-
         # deviation of noise
         sigma_I0 = self.as_array(self.sigma * self.exp(self.lnI0 - 1.0 / scale * pmax))
 
