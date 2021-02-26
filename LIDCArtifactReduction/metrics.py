@@ -33,7 +33,7 @@ class SumSquaredError(MeanBasedMetric):
         super().__init__(name, dtype=dtype)
 
     def _objective_function(self, y_true, y_pred):
-        return tf.reduce_sum(tf.square(y_true-y_pred), axis=range(1,tf.rank(y_true)))
+        return tf.reduce_sum(tf.square(y_true-y_pred), axis=range(1, tf.rank(y_true)))
 
 
 class HU_RMSE(RootMeanSquaredError):
@@ -52,16 +52,6 @@ class HU_MAE(MeanAbsoluteError):
         return scale_Radio2HU(super().result())
 
 
-# TODO: completely nonsense to take SNR of mean, instead of mean of SNRs
-# class RadioSNR(MeanSquaredError):
-#     def __init__(self, name='RadioSNR', dtype=None):
-#         super().__init__(name, dtype=dtype)
-#
-#     def result(self):
-#         # to make it a usual SNR definition:
-#         multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
-#         return multiplier * tf.math.log( tf.square(1000.0 / parameters.HU_TO_CT_SCALING) / (super().result()) )
-
 class ReconstructionReference2Noise(MeanBasedMetric):
     def __init__(self, name='rec_ref2noise', dtype=None):
         super().__init__(name, dtype=dtype)
@@ -70,17 +60,17 @@ class ReconstructionReference2Noise(MeanBasedMetric):
         ref = 1000.0 / parameters.HU_TO_CT_SCALING
         multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
         return multiplier * tf.math.log( tf.square(ref) /
-                                         tf.reduce_mean(shape_to_4D(tf.square(y_true - y_pred)), axis=[1, 2, 3]) )
+                                         tf.reduce_mean(tf.square(y_true - y_pred), axis=range(1, tf.rank(y_true))) )
 
-# TODO: check dimension of objective
+
 class Signal2Noise(MeanBasedMetric):
     def __init__(self, name='signal2noise', dtype=None):
         super().__init__(name, dtype=dtype)
 
     def _objective_function(self, y_true, y_pred):
         multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
-        return multiplier * tf.math.log( tf.reduce_mean(shape_to_4D(tf.square(y_true)), axis=[1, 2, 3]) /
-                                         tf.reduce_mean(shape_to_4D(tf.square(y_true - y_pred)), axis=[1, 2, 3]) )
+        return multiplier * tf.math.log( tf.reduce_mean(tf.square(y_true), axis=range(1, tf.rank(y_true))) /
+                                         tf.reduce_mean(tf.square(y_true - y_pred), axis=range(1, tf.rank(y_true))) )
 
 
 class SSIM(MeanBasedMetric):

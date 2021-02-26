@@ -8,7 +8,7 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
 
 from LIDCArtifactReduction.directory_system import DirectorySystem
-from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError
+from LIDCArtifactReduction.metrics import HU_MAE, ReconstructionReference2Noise, SSIM, MeanSquare, RelativeError
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTRestNet_training_loss \
@@ -74,7 +74,7 @@ class IterativeARTResNetTrainingV2(ModelInterface):
         #                differential: MS
         self._metrics_reconstruction = [metrics.MeanSquaredError('rec_mse'),
                                         HU_MAE('rec_HU_mae'),
-                                        RadioSNR('rec_snr'),
+                                        ReconstructionReference2Noise('rec_snr'),
                                         SSIM('rec_ssim'),
                                         RelativeError('rec_rel_err')]
         self._monitored_metric = self._metrics_reconstruction[1]

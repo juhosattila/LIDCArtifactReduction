@@ -108,6 +108,29 @@ def min_max_scale(img_or_imgs: TensorLike):
     return (img_or_imgs - min_ex) / diff_ex
 
 
+def shape_to_3D(imgs):
+    """Removes squeezable channel dimension, if there is one.
+    Args:
+        imgs: tensor or numpy array in custom format.
+    Returns:
+        Tensor. If last dimension is squeezable, i.e. C=1, then it is removed.
+    """
+    imgs_tf = tf.convert_to_tensor(imgs)
+    if tf.shape(imgs_tf)[-1] == 1:
+        imgs_tf = tf.squeeze(imgs_tf, axis=[-1])
+    return imgs_tf
+
+
+def shape_to_4D(imgs):
+    """Add channel dimension with C=1, if there is not one.
+    Args:
+        imgs: tensor or numpy array in NHW or NHWC, C=1 format.
+    Returns:
+        Tensor in NHWC format."""
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+    return tf.reshape( imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0) )
+
+
 # HU should be understood as difference measured in HU and not absolute scales.
 # HU is not translated necessarily anywhere, but rescaling should be applied to reach
 # to radiosities and absolute gray levels.
@@ -164,8 +187,7 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
 
 def _total_variation_field(imgs: TensorLike, eps=0.0):
     eps_tf = tf.convert_to_tensor(eps, dtype=tf.float32)
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
+    imgs4D = shape_to_4D(imgs)
     diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
     diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
     total_variation = tf.sqrt(tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]) + eps_tf)
@@ -203,8 +225,7 @@ def total_variation_mean_norm(imgs: TensorLike):
 
 
 def _total_variation_field_squared(imgs: TensorLike):
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    imgs4D = tf.reshape(imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0))
+    imgs4D = shape_to_4D(imgs)
     diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
     diff_y = imgs4D[:, 1:] - imgs4D[:, :-1]
     total_variation = (tf.square(diff_x[:, :-1]) + tf.square(diff_y[:, :, :-1]))
@@ -258,35 +279,11 @@ class LogarithmicTotalVariationObjectiveFunction:
 
 def ssims_tf(imgs1, imgs2):
     """Result is of shape (N,) or ()."""
-    imgs1_tf = tf.convert_to_tensor(imgs1)
-    imgs2_tf = tf.convert_to_tensor(imgs2)
+    imgs1_tf = tf.convert_to_tensor(imgs1, dtype=tf.float32)
+    imgs2_tf = tf.convert_to_tensor(imgs2, dtype=tf.float32)
     # tf.image.ssim returns batch of ssims
     ssim_values = tf.image.ssim(imgs1_tf, imgs2_tf, max_val=5000.0 / parameters.HU_TO_CT_SCALING)
     return ssim_values
-
-
-def shape_to_3D(imgs):
-    """Removes squeezable channel dimension, if there is one.
-    Args:
-        imgs: tensor or numpy array in custom format.
-    Returns:
-        Tensor. If last dimension is squeezable, i.e. C=1, then it is removed.
-    """
-    imgs_tf = tf.convert_to_tensor(imgs)
-    if tf.shape(imgs_tf)[-1] == 1:
-        imgs_tf = tf.squeeze(imgs_tf, axis=[-1])
-    return imgs_tf
-
-
-# TODO: ket helyre beir
-def shape_to_4D(imgs):
-    """Add channel dimension with C=1, if there is not one.
-    Args:
-        imgs: tensor or numpy array in NHW or NHWC, C=1 format.
-    Returns:
-        Tensor in NHWC format."""
-    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
-    return tf.reshape( imgs_tf, shape=tf.concat([tf.shape(imgs_tf)[:3], [1]], axis=0) )
 
 
 def mean_absolute_errors_tf(imgs1, imgs2):

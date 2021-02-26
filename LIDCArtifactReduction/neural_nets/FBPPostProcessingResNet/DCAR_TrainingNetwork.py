@@ -9,7 +9,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoa
 
 from LIDCArtifactReduction import utility, directory_system
 from LIDCArtifactReduction.directory_system import DirectorySystem
-from LIDCArtifactReduction.metrics import HU_RMSE, RadioSNR, SSIM
+from LIDCArtifactReduction.metrics import HU_RMSE, ReconstructionReference2Noise, SSIM
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 from LIDCArtifactReduction.tf_image import LogarithmicTotalVariationObjectiveFunction
@@ -111,7 +111,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
                         [RootMeanSquaredError(name='rmse_reconstruction'),
                          HU_RMSE(name='rmse_HU_recontruction'),
-                         RadioSNR(name='SNR_reconstruction'),
+                         ReconstructionReference2Noise(name='RNR_reconstruction'),
                          SSIM(name='ssim')],
                     DCAR_TrainingNetwork.sino_output_name:
                         [RootMeanSquaredError(name='rmse_radon_space')]}

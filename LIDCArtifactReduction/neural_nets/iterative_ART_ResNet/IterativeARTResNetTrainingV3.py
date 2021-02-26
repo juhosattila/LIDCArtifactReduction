@@ -9,7 +9,7 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
 
 from LIDCArtifactReduction.directory_system import DirectorySystem
-from LIDCArtifactReduction.metrics import HU_MAE, RadioSNR, SSIM, MeanSquare, RelativeError, MeanSumSquare
+from LIDCArtifactReduction.metrics import HU_MAE, ReconstructionReference2Noise, SSIM, MeanSquare, RelativeError, MeanSumSquare
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.iterative_ART_ResNet.IterativeARTResNet import IterativeARTResNet
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
@@ -98,7 +98,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
             self._metrics_iteration_reconstructions.append(metrics.MeanSquaredError(f'rec_mse_{i+1}'))
         self._all_metrics += self._metrics_iteration_reconstructions
         self._metrics_final_reconstruction = [HU_MAE('rec_HU_mae'),
-                                              RadioSNR('rec_snr'),
+                                              ReconstructionReference2Noise('rec_snr'),
                                               SSIM('rec_ssim'),
                                               RelativeError('rec_rel_err')]
         self._monitored_metric = self._metrics_final_reconstruction[0]
