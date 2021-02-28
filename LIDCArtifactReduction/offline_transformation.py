@@ -31,7 +31,7 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
         intercepts_tf = tf.convert_to_tensor(intercepts, dtype=tf.float32)
         slopes_tf = tf.convert_to_tensor(slopes, dtype=tf.float32)
         scaled_data, data_sino = self._tf_transformation(data_batch_tf, intercepts_tf, slopes_tf)
-        return np.asarray(scaled_data, dtype=np.float32), np.asarray(data_sino, dtype=np.float32)
+        return np.array(scaled_data, dtype=np.float32), np.array(data_sino, dtype=np.float32)
 
     # Always convert arguments to tensor before passing and make sure, that shape is constant,
     # otherwise new and new graphs will be created, slowing down the execution.

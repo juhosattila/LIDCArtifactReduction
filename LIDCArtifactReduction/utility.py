@@ -62,7 +62,7 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
 def analyse(arrs, names=None):
     """Analyse list of numpy arrays in the form of HW, NHW or NHWC
     """
-    arrays = np.asarray(arrs, dtype=np.float32)
+    arrays = np.array(arrs, dtype=np.float32)
     if np.ndim(arrays) == 2:
         arrays = [arrays]
 
