@@ -20,7 +20,8 @@ class NumpyMathMixin(MathMixin):
         return np.random.poisson(mean)
 
     def as_array(self, x):
-        return np.asarray(x, dtype=np.float32)
+        # If done with np.asarray from Tensor, then result is read-only and no longer changeable.
+        return np.array(x, dtype=np.float32)
 
     def where(self, condition, x, y):
         return np.where(condition, x, y)

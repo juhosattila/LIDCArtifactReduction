@@ -44,8 +44,6 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
 
 
     def generate_sinogram_noise(self, sino):
-        """See documentation for explananation."""
-
         # pmax refers to the approximate maximum value in the sinogram
         # For scaling 1000HU to 1CT, we have (relevant sinomax) ~ IMG_SIDE_LENGTH
         pmax = self._geometry.volume_img_width * 1000.0 / parameters.HU_TO_CT_SCALING
