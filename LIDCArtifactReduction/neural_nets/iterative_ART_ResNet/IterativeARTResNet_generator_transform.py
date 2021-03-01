@@ -24,12 +24,12 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
         sinograms_tf = tf.convert_to_tensor(sinograms, dtype=tf.float32)
         bad_sinograms_tf = self.generate_sinogram_noise(sinograms_tf) if self.add_noise else sinograms_tf
 
-        if self._test_mode:
-            return reconstructions, sinograms, bad_sinograms_tf.numpy()
-
         actual_reconstructions_tf = tf.zeros_like(reconstructions_tf, dtype=tf.float32)
         for i in range(self._mode):
             actual_reconstructions_tf = self._radon_transform.ART_step(actual_reconstructions_tf, bad_sinograms_tf)
+
+        if self._test_mode:
+            return reconstructions, sinograms, bad_sinograms_tf.numpy(), actual_reconstructions_tf.numpy()
 
         return self.output_data_formatter(
             actual_reconstructions=actual_reconstructions_tf,
