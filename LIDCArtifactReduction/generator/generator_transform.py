@@ -37,7 +37,6 @@ class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
     @property
     def sum_scaling(self):
         return self._sum_scaling
-
     @sum_scaling.setter
     def sum_scaling(self, value):
         self._sum_scaling = self.as_array(value)

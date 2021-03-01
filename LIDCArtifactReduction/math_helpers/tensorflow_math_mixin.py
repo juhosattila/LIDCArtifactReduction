@@ -21,6 +21,7 @@ class TensorflowMathMixin(MathMixin):
         return tf.random.poisson([], mean_tf, dtype=tf.float32)
 
     def as_array(self, x):
+        # TODO: needs to be tested. Input Tensor with tf.float64 causes ValueError, but where does float64 come from?
         return tf.convert_to_tensor(x, dtype=tf.float32)
         # The row below generally would accept x to be Tensor with dtype=tf.float64 and cast it.
         # tf.convert_to_tensor with dtype=tf.float32 does not accept such input but it is better to have this option,

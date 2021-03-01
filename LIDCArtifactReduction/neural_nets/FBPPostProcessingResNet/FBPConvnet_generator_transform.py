@@ -7,7 +7,7 @@ from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeome
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import RadonTransform
 
 
-# TODO: make this usable with TensorflowMathMixin
+# TODO: make this usable with TensorflowMathMixin. Inject instead of inheriting. Inverting Radon is needed.
 class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
     def __init__(self, geometry: RadonGeometry, radon_transform: RadonTransform,
                  add_noise: bool, lnI0=5 * np.log(10), sigma=0.3, sum_scaling=5.0,
