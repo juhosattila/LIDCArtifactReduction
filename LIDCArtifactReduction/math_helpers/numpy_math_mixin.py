@@ -17,7 +17,7 @@ class NumpyMathMixin(MathMixin):
         return np.random.normal(mean, stddev, size)
 
     def random_poisson(self, mean):
-        return np.random.poisson(mean)
+        return np.random.poisson(mean).astype(np.float32)
 
     def as_array(self, x):
         # If done with np.asarray from Tensor, then result is read-only and no longer changeable.
