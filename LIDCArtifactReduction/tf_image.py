@@ -115,7 +115,7 @@ def shape_to_3D(imgs):
     Returns:
         Tensor. If last dimension is squeezable, i.e. C=1, then it is removed.
     """
-    imgs_tf = tf.convert_to_tensor(imgs)
+    imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
     if tf.shape(imgs_tf)[-1] == 1:
         imgs_tf = tf.squeeze(imgs_tf, axis=[-1])
     return imgs_tf
@@ -186,6 +186,7 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
 
 
 def _total_variation_field(imgs: TensorLike, eps=0.0):
+    """Only usable with NHW(C) format with C=1. Batch dimension is mandatory."""
     eps_tf = tf.convert_to_tensor(eps, dtype=tf.float32)
     imgs4D = shape_to_4D(imgs)
     diff_x = imgs4D[:, :, 1:] - imgs4D[:, :, :-1]
@@ -258,7 +259,7 @@ def reweighted_total_variation_sum_norm(imgs: TensorLike, delta : float):
     return reweighted_tv_norm
 
 
-def sparsity_mean_operator(imgs: TensorLike, eps: float):
+def _sparsity_mean_operator(imgs: TensorLike, eps: float):
     return tf.reduce_mean(tf.math.log(imgs + eps))
 
 
@@ -266,7 +267,7 @@ def logarithmic_total_variation_objective_function(imgs: TensorLike, eps: float)
     # Eps is used in TV gradients, because derivatives were becoming 0/0 after a while.
     # Think about reducing eps.
     total_variation = _total_variation_field(imgs, eps=1e-3)
-    return sparsity_mean_operator(total_variation, eps)
+    return _sparsity_mean_operator(total_variation, eps)
 
 
 class LogarithmicTotalVariationObjectiveFunction:
@@ -295,10 +296,30 @@ def mean_absolute_errors_tf(imgs1, imgs2):
 
 def relative_errors_tf(y_true, y_pred):
     """Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
-    return tf.norm(shape_to_3D(y_true - y_pred), axis=[-2, -1]) / tf.norm(shape_to_3D(y_true), axis=[-2, -1])
+    y_true_tf_3D = shape_to_3D(y_true)
+    y_pred_tf_3D = shape_to_3D(y_pred)
+    return tf.norm(y_true_tf_3D - y_pred_tf_3D, axis=[-2, -1]) / tf.norm(y_true_tf_3D, axis=[-2, -1])
 
 
 def mean_squares_tf(imgs):
-    """Result is of shape (N,) or ()."""
+    """"Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
     imgs_tf = shape_to_3D(imgs)
     return tf.reduce_mean(tf.square(imgs_tf), axis=[-2, -1])
+
+
+def reference2noise_tf(y_true, y_pred, ref):
+    """Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
+    y_true_tf_3D = shape_to_3D(y_true)
+    y_pred_tf_3D = shape_to_3D(y_pred)
+    multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
+    return multiplier * tf.math.log(tf.square(ref) /
+                                    tf.reduce_mean(tf.square(y_true_tf_3D - y_pred_tf_3D), axis=[-2, -1]))
+
+
+def signal2noise_tf(y_true, y_pred):
+    """Any of the (N)HW(C) format work for C=1. Result is of shape (N,) or ()."""
+    y_true_tf_3D = shape_to_3D(y_true)
+    y_pred_tf_3D = shape_to_3D(y_pred)
+    multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
+    return multiplier * tf.math.log(tf.reduce_mean(tf.square(y_true_tf_3D), axis=[-2, -1]) /
+                                    tf.reduce_mean(tf.square(y_true_tf_3D - y_pred_tf_3D), axis=[-2, -1]))

@@ -89,8 +89,9 @@ class IterativeARTResNetTrainingV3(ModelInterface):
 
         # Setting metrics.
         self._all_metrics = []
-        # Possibilities: Rec: MSE, RMSE, MAE, MSE in HU, MAE in HU, RMSE in HU, SNR, SSIM, relative error
-        #        Choose: SNR, SSIM, HU_MAE, MSE, rel_error
+        # Possibilities: Rec: MSE, RMSE, MAE, MSE in HU, MAE in HU, RMSE in HU, RNR, SNR, SSIM, relative error
+        #           New: SNR, Standard Variance on SNR (or any)
+        #        Choose: RNR, SSIM, HU_MAE, MSE, rel_error
         #                sino_error: MS
         #                differential: MS
         self._metrics_iteration_reconstructions = []

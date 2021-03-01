@@ -1,10 +1,12 @@
 from abc import abstractmethod
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters, tf_image
-from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssims_tf, mean_squares_tf, shape_to_4D
+from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssims_tf, mean_squares_tf, shape_to_4D, signal2noise_tf, \
+    reference2noise_tf
 
 
 class MeanBasedMetric(Metric):
@@ -25,6 +27,29 @@ class MeanBasedMetric(Metric):
 
     def reset_states(self):
         self._mean.reset_states()
+
+
+class StandardVarianceBasedMetric(Metric):
+    def __init__(self, name, dtype):
+        super().__init__(name, dtype=dtype)
+        self._mean = Mean(dtype=dtype)
+        self._square_mean = Mean(dtype=dtype)
+
+    @abstractmethod
+    def _objective_function(self, y_true, y_pred):
+        pass
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        values = self._objective_function(y_true, y_pred)
+        self._mean.update_state(values=values, sample_weight=sample_weight)
+        self._square_mean.update_state(values=tf.square(values), sample_weight=sample_weight)
+
+    def result(self):
+        return np.sqrt(self._square_mean.result() - np.square(self._mean.result()))
+
+    def reset_states(self):
+        self._mean.reset_states()
+        self._square_mean.reset_states()
 
 
 class SumSquaredError(MeanBasedMetric):
@@ -58,9 +83,7 @@ class ReconstructionReference2Noise(MeanBasedMetric):
 
     def _objective_function(self, y_true, y_pred):
         ref = 1000.0 / parameters.HU_TO_CT_SCALING
-        multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
-        return multiplier * tf.math.log( tf.square(ref) /
-                                         tf.reduce_mean(tf.square(y_true - y_pred), axis=range(1, tf.rank(y_true))) )
+        return reference2noise_tf(y_true, y_pred, ref=ref)
 
 
 class Signal2Noise(MeanBasedMetric):
@@ -68,9 +91,15 @@ class Signal2Noise(MeanBasedMetric):
         super().__init__(name, dtype=dtype)
 
     def _objective_function(self, y_true, y_pred):
-        multiplier = 10.0 / tf.math.log(10.0)  # = 4.3429
-        return multiplier * tf.math.log( tf.reduce_mean(tf.square(y_true), axis=range(1, tf.rank(y_true))) /
-                                         tf.reduce_mean(tf.square(y_true - y_pred), axis=range(1, tf.rank(y_true))) )
+        return signal2noise_tf(y_true, y_pred)
+
+
+class Signal2NoiseStandardDeviance(StandardVarianceBasedMetric):
+    def __init__(self, name='signa2noise_std', dtype=None):
+        super().__init__(name, dtype=dtype)
+
+    def _objective_function(self, y_true, y_pred):
+        return signal2noise_tf(y_true, y_pred)
 
 
 class SSIM(MeanBasedMetric):

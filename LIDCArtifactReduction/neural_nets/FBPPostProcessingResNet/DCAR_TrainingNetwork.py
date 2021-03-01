@@ -7,7 +7,7 @@ from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 
-from LIDCArtifactReduction import utility, directory_system
+from LIDCArtifactReduction import utility
 from LIDCArtifactReduction.directory_system import DirectorySystem
 from LIDCArtifactReduction.metrics import HU_RMSE, ReconstructionReference2Noise, SSIM
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
@@ -16,7 +16,7 @@ from LIDCArtifactReduction.tf_image import LogarithmicTotalVariationObjectiveFun
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_TargetInterface
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
-import LIDCArtifactReduction.losses
+import LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.losses
 
 
 class DCAR_TrainingNetwork(ModelInterface):
@@ -77,6 +77,11 @@ class DCAR_TrainingNetwork(ModelInterface):
             _sino_output_weight = 1.0 / self._radon_geometry.nr_projections
 
         # Losses
+
+        # This is added only once, because it becomes part of the topology.
+        # TODO: make it removeable.
+        # !!! If once added, it will stay in the topology, hence a second call to compile with add_tv=false will have
+        # no effect.
         if add_total_variation and not self._total_variation_loss_set:
             tot_var_regualizer = LogarithmicTotalVariationObjectiveFunction(total_variation_eps)
 
@@ -87,9 +92,9 @@ class DCAR_TrainingNetwork(ModelInterface):
         # TODO: if necessary, make it switcheable from API
         # Loss settings:
 
+        # First setting.
         # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
         #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
-
 
         # The second one contains a TV L2 squared loss on the differenceimage in order to preserve edges.
         # losses = {DCAR_TrainingNetwork.reconstruction_output_name:
@@ -99,8 +104,8 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         # Third setting: TV L1.
         losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-                      LIDCArtifactReduction.losses.MSE_TV_diff_loss(tv_weight=mse_tv_weight,
-                                                                            name='mse_tv_square_diff'),
+                      LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.losses.MSE_TV_diff_loss(tv_weight=mse_tv_weight,
+                                                                                                        name='mse_tv_square_diff'),
                   DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
 
 
@@ -108,6 +113,11 @@ class DCAR_TrainingNetwork(ModelInterface):
                         DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
 
         # Metrics
+
+        # Possibilities: Rec: MSE, RMSE, MAE, MSE in HU, MAE in HU, RMSE in HU, RNR, SNR, SSIM, relative error
+        #           New: SNR, Standard Variance on SNR (or any)
+        #        Choose: RNR, SNR, SNR STD, SSIM, HU_MAE, MSE, rel_error
+        #                sino_error: MSE
         metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
                         [RootMeanSquaredError(name='rmse_reconstruction'),
                          HU_RMSE(name='rmse_HU_recontruction'),
