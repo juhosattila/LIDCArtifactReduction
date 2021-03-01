@@ -67,7 +67,7 @@ class ParallelRadonTransform(RadonTransform):
         raise NotImplementedError()
 
     def invert(self, sinos: TensorLike):
-        sinos_np = np.array(sinos, dtype=np.float32)
+        sinos_np = np.asarray(sinos, dtype=np.float32) # read-only copy is enough, beacuse reshape copies.
         # remove channel dimensions, if any
         sinos_3D = np.reshape(sinos_np, newshape=np.shape(sinos_np)[:3])
         reconstructions = []
@@ -78,4 +78,4 @@ class ParallelRadonTransform(RadonTransform):
         # stack and add back channel dimension, even if there wasn't one
         reconstructions = np.expand_dims(np.stack(reconstructions, axis=0), axis=-1)
 
-        return reconstructions
+        return reconstructions.astype(np.float32)
