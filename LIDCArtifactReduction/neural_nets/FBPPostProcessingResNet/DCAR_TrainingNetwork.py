@@ -130,13 +130,14 @@ class DCAR_TrainingNetwork(ModelInterface):
         #        Choose: RNR, SNR, SNR STD, SSIM, HU_MAE, MSE, rel_error
         #                sino_error: MSE
         metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
-                        [HU_MAE(name='rmse_HU_recontruction'),
+                        [HU_MAE(name='hu_mae'),
                          keras.losses.MeanSquaredError(name='rec_mse'),
                          ReconstructionReference2Noise(name='rec_rnr'),
                          Signal2Noise(name='rec_snr'),
                          Signal2NoiseStandardDeviance(name='rec_snr_std'),
                          SSIM(name='rec_ssim'),
-                         RelativeError(name='rec_rel_err')],
+                         RelativeError(name='rec_rel_err')
+                         ],
                     DCAR_TrainingNetwork.sino_output_name:
                         [keras.losses.MeanSquaredError(name='sino_mse')]}
 
@@ -169,7 +170,8 @@ class DCAR_TrainingNetwork(ModelInterface):
         txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
         csvlogger = CSVLogger(filename=txt_filename)
 
-        callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
+        # callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
+        callbacks = [tensorboard]
 
         # Number of batches used.
         # Use entire dataset once.

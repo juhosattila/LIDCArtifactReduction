@@ -45,7 +45,7 @@ class StandardVarianceBasedMetric(Metric):
         self._square_mean.update_state(values=tf.square(values), sample_weight=sample_weight)
 
     def result(self):
-        return np.sqrt(self._square_mean.result() - np.square(self._mean.result()))
+        return tf.sqrt(self._square_mean.result() - tf.square(self._mean.result()))
 
     def reset_states(self):
         self._mean.reset_states()
