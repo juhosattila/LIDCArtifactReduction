@@ -4,12 +4,12 @@ from datetime import datetime
 from tensorflow import keras
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 
 from LIDCArtifactReduction import utility
 from LIDCArtifactReduction.directory_system import DirectorySystem
-from LIDCArtifactReduction.metrics import HU_RMSE, ReconstructionReference2Noise, SSIM
+from LIDCArtifactReduction.metrics import HU_RMSE, ReconstructionReference2Noise, SSIM, HU_MAE, Signal2Noise, \
+    Signal2NoiseStandardDeviance, RelativeError
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 from LIDCArtifactReduction.tf_image import LogarithmicTotalVariationObjectiveFunction
@@ -130,12 +130,15 @@ class DCAR_TrainingNetwork(ModelInterface):
         #        Choose: RNR, SNR, SNR STD, SSIM, HU_MAE, MSE, rel_error
         #                sino_error: MSE
         metrics = { DCAR_TrainingNetwork.reconstruction_output_name:
-                        [RootMeanSquaredError(name='rmse_reconstruction'),
-                         HU_RMSE(name='rmse_HU_recontruction'),
-                         ReconstructionReference2Noise(name='RNR_reconstruction'),
-                         SSIM(name='ssim')],
+                        [HU_MAE(name='rmse_HU_recontruction'),
+                         keras.losses.MeanSquaredError(name='rec_mse'),
+                         ReconstructionReference2Noise(name='rec_rnr'),
+                         Signal2Noise(name='rec_snr'),
+                         Signal2NoiseStandardDeviance(name='rec_snr_std'),
+                         SSIM(name='rec_ssim'),
+                         RelativeError(name='rec_rel_err')],
                     DCAR_TrainingNetwork.sino_output_name:
-                        [RootMeanSquaredError(name='rmse_radon_space')]}
+                        [keras.losses.MeanSquaredError(name='sino_mse')]}
 
 
         self._model.compile(optimizer=Adam(lr),
