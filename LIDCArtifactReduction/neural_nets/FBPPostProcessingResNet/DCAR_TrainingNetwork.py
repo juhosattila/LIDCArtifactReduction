@@ -170,8 +170,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
         csvlogger = CSVLogger(filename=txt_filename)
 
-        # callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
-        callbacks = [tensorboard]
+        callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
 
         # Number of batches used.
         # Use entire dataset once.
