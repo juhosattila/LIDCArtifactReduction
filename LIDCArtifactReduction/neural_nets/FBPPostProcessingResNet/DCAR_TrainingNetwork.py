@@ -154,7 +154,9 @@ class DCAR_TrainingNetwork(ModelInterface):
         # We are going to use early stopping and model saving mechanism.
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_hu_mae'
         file = os.path.join(self._weight_dir, self._name)
-        file = file + '.{epoch:02d}-{' + monitored_value + ':.4f}' + self._model_weights_extension
+        #file = file + '.{epoch:02d}-{' + monitored_value + ':.1f}' + self._model_weights_extension
+        #file = file + '-HUMAE-{' + monitored_value + ':.1f}' + self._model_weights_extension
+        file = file + self._model_weights_extension
         checkpointer = ModelCheckpoint(
                         monitor=monitored_value,
                         filepath=file, save_best_only=True,
@@ -170,7 +172,7 @@ class DCAR_TrainingNetwork(ModelInterface):
         txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
         csvlogger = CSVLogger(filename=txt_filename)
 
-        callbacks = [checkpointer, earlystopping, tensorboard, csvlogger]
+        callbacks = [checkpointer, tensorboard]
 
         # Number of batches used.
         # Use entire dataset once.
