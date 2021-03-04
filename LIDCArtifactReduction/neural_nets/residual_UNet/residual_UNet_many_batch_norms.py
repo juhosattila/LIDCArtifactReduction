@@ -65,14 +65,15 @@ class ResidualUNetManyBatchNorms(ResidualUNetAbstract):
         u0 = self._conv_k3_activation_possible_batchnorm(64)(u0)
         u0 = self._conv_k3_activation_possible_batchnorm(64)(u0)
 
-        diff_layer = Conv2D(filters=1, kernel_size=(1, 1), padding='same',
-                            kernel_initializer=self._conv_layer_initalizer,
-                            kernel_regularizer=self._conv_layer_regualizer)(u0)
+        difference_layer = self.get_difference_layer()(u0)
+        output_layer = Add(name=self._output_name)([input_layer, difference_layer])
 
-        output_layer = Add(name=self._output_name)([input_layer, diff_layer])
-
-        model = Model(inputs=input_layer, outputs=output_layer, name=self.name)
+        if self._output_difference_layer:
+            model = Model(inputs=input_layer, outputs=[output_layer, difference_layer], name=self.name)
+        else:
+            model = Model(inputs=input_layer, outputs=output_layer, name=self.name)
 
         self._model = model
         self._input_layer = input_layer
         self._output_layer = output_layer
+        self._difference_layer = difference_layer
