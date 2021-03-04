@@ -22,7 +22,7 @@ from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.losses import MSE
 class DCAR_TrainingNetwork(ModelInterface):
     def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: DCAR_TargetInterface, dir_system: DirectorySystem, name=None):
-        super().__init__(name)
+        super().__init__(name=name, weight_dir=dir_system.MODEL_WEIGHTS_DIRECTORY)
         self._target_model = target_model
         self._input_shape = target_model.input_shape
 
@@ -35,7 +35,6 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         self._total_variation_loss_set = False
 
-        self._weight_dir = dir_system.MODEL_WEIGHTS_DIRECTORY
         self._directory_system = dir_system
 
         self._build_model()
@@ -149,30 +148,40 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
-            early_stoppig_patience=5, verbose=1, initial_epoch=0):
+            early_stoppig_patience: int or None = 5, csv_logging: bool = False,
+            verbose=1, initial_epoch=0):
 
-        # We are going to use early stopping and model saving mechanism.
+        ## Callbacks
+        # Modelcheckpointer
+        # TODO: solve this naming issue
+        name_datetime = self.name + datetime.now().strftime("%Y%m%d-%H%M")
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_hu_mae'
-        file = os.path.join(self._weight_dir, self._name)
+
+        file = os.path.join(self.weight_dir, name_datetime)
         #file = file + '.{epoch:02d}-{' + monitored_value + ':.1f}' + self._model_weights_extension
-        #file = file + '-HUMAE-{' + monitored_value + ':.1f}' + self._model_weights_extension
-        file = file + self._model_weights_extension
+        file = file + '-HUMAE-{' + monitored_value + ':.1f}' + self._model_weights_extension
+        #file = file + self._model_weights_extension
         checkpointer = ModelCheckpoint(
                         monitor=monitored_value,
                         filepath=file, save_best_only=True,
                         save_weights_only=True, verbose=1,
                         save_freq='epoch')
-        earlystopping = EarlyStopping(patience=early_stoppig_patience, verbose=1)
 
-        # Tensorboard and logging
-        datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "fit", datetimenow)
+        # Tensorboard
+        tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "fit", name_datetime)
         tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
-        txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "fit")
-        txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
-        csvlogger = CSVLogger(filename=txt_filename)
 
         callbacks = [checkpointer, tensorboard]
+
+        if early_stoppig_patience is not None:
+            earlystopping = EarlyStopping(patience=early_stoppig_patience, verbose=1)
+            callbacks.append(earlystopping)
+
+        if csv_logging:
+            txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "fit")
+            txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
+            csvlogger = CSVLogger(filename=txt_filename)
+            callbacks.append(csvlogger)
 
         # Number of batches used.
         # Use entire dataset once.

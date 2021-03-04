@@ -13,9 +13,10 @@ class ResidualUNetManyBatchNorms(ResidualUNetAbstract):
     # TODO: if needed, add possibility, to make difference_layer to outputs.
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
-                 name=None, input_name=None, output_name=None):
+                 name=None, weight_dir=None, input_name=None, output_name=None):
         super().__init__(volume_img_width, has_batch_norm, has_dropout, has_activation_after_upsampling,
-                         conv_regularizer=conv_regularizer, name=name, input_name=input_name, output_name=output_name)
+                         conv_regularizer=conv_regularizer, name=name, weight_dir=weight_dir,
+                         input_name=input_name, output_name=output_name)
 
     def _build_model(self):
         input_layer = self._input()

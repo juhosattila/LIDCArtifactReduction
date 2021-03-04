@@ -12,13 +12,13 @@ from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 class ResidualUNetAbstract(ModelInterface):
     def __init__(self, volume_img_width: int, has_batch_norm=True, has_dropout=False,
                  has_activation_after_upsampling=False, conv_regularizer=None,
-                 name=None, input_name=None, output_name=None,
+                 name=None, weight_dir=None, input_name=None, output_name=None,
                  output_difference_layer: bool = False, difference_name=None):
         """
         Args:
             conv_regularizer: either a  regularizer class or a number for weight of l2 reg
         """
-        super().__init__(name)
+        super().__init__(name=name, weight_dir=weight_dir)
 
         # Should be tuple of integers that are divisible by 2^4
         self._input_shape = (volume_img_width, volume_img_width)

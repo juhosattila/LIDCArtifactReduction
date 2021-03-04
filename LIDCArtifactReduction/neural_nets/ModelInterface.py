@@ -9,7 +9,7 @@ from LIDCArtifactReduction import directory_system, utility
 class ModelInterface:
     object_counter = {}
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, weight_dir=None):
         valid_name = name
         if valid_name is None:
             class_name = type(self).__name__
@@ -19,11 +19,23 @@ class ModelInterface:
         self._model : Model = None
 
         self._model_weights_extension = '.hdf5'
-        self._weight_dir = directory_system.BASE_MODEL_WEIGHTS_DIRECTORY
+        self._weight_dir = weight_dir or directory_system.BASE_MODEL_WEIGHTS_DIRECTORY
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def weight_dir(self):
+        return self._weight_dir
+
+    @weight_dir.setter
+    def weight_dir(self, value):
+        self._weight_dir = value
+
+    @property
+    def model_weights_extension(self):
+        return self._model_weights_extension
 
     def summary(self):
         self._model.summary()
@@ -44,12 +56,9 @@ class ModelInterface:
     #     # If format='h5' is used, losses and custom objects need to be handled separately.
     #     self._model.save(file, save_format='tf')
 
-    def get_weight_file_path(self):
-        file = os.path.join(self._weight_dir, self._name)
-        return file + self._model_weights_extension
-
     def save_weights(self):
-        self._model.save_weights(self.get_weight_file_path())
+        filename = os.path.join(self.weight_dir, self.name) + self.model_weights_extension
+        self._model.save_weights(filename)
 
     def load_weights(self, name=None, latest=False):
         """
@@ -60,7 +69,7 @@ class ModelInterface:
                 ignoring 'name'. If there is not a file, than 'name' is loaded.
         """
         file = utility.get_filepath(name=name, latest=latest,
-                             directory=self._weight_dir, extension=self._model_weights_extension)
+                             directory=self.weight_dir, extension=self.model_weights_extension)
 
         print("----------------------------------")
         print("Loading model weights contained in file:")
