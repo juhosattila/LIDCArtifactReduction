@@ -71,7 +71,7 @@ class HU_RMSE(RootMeanSquaredError):
 
 class HU_MAE(MeanAbsoluteError):
     def __init__(self, name='HU_MAE', dtype=None):
-        super().__init__(name, dtype=dtype)
+        super().__init__(name=name, dtype=dtype)
 
     def result(self):
         return scale_Radio2HU(super().result())

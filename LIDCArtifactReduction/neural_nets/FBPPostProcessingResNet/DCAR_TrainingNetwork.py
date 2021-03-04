@@ -153,8 +153,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         ## Callbacks
         # Modelcheckpointer
-        # TODO: solve this naming issue
-        name_datetime = self.name + datetime.now().strftime("%Y%m%d-%H%M")
+        name_datetime = self.name + '-' + datetime.now().strftime("%Y%m%d-%H%M")
         monitored_value = 'val_' + DCAR_TrainingNetwork.reconstruction_output_name + '_hu_mae'
 
         file = os.path.join(self.weight_dir, name_datetime)
@@ -179,7 +178,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         if csv_logging:
             txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "fit")
-            txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
+            txt_filename = os.path.join(txt_logdir, name_datetime + '.log')
             csvlogger = CSVLogger(filename=txt_filename)
             callbacks.append(csvlogger)
 

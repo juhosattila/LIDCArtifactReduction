@@ -148,8 +148,8 @@ def scale_HU2Radio(imgs: TensorLike):
 
 
 def scale_Radio2HU(imgs: TensorLike):
-    img_min = tf.constant([0.], dtype=tf.float32)
-    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
+    img_min = tf.constant(0., dtype=tf.float32)
+    img_max = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
     return imgs * (img_max - img_min) + img_min
 
 
