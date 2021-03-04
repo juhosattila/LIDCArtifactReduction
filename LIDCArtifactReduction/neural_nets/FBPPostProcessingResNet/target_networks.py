@@ -36,7 +36,7 @@ class DCAR_UNet_FewBatchNorms(ResidualUNetFewBatchNorms, DCAR_TargetInterface):
                          output_name=DCAR_TargetInterface.reconstruction_output_name)
 
 
-class DCAR_UNet_ManyBatchNorms(DCAR_TargetInterface, ResidualUNetManyBatchNorms):
+class DCAR_UNet_ManyBatchNorms(ResidualUNetManyBatchNorms, DCAR_TargetInterface):
     """Defaults are made according to article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, there is No dropout and activation after upsampling.
