@@ -148,7 +148,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
-            early_stoppig_patience: int or None = 5, csv_logging: bool = False,
+            early_stoppig_patience: int or None = None, csv_logging: bool = False,
             verbose=1, initial_epoch=0):
 
         ## Callbacks
