@@ -1,10 +1,11 @@
 import os
 from datetime import datetime
 
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger, LambdaCallback
 
 from LIDCArtifactReduction import utility
 from LIDCArtifactReduction.directory_system import DirectorySystem
@@ -149,6 +150,7 @@ class DCAR_TrainingNetwork(ModelInterface):
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
             early_stoppig_patience: int or None = None, csv_logging: bool = False,
+            tb_test_images = None,
             verbose=1, initial_epoch=0):
 
         ## Callbacks
@@ -181,6 +183,19 @@ class DCAR_TrainingNetwork(ModelInterface):
             txt_filename = os.path.join(txt_logdir, name_datetime + '.log')
             csvlogger = CSVLogger(filename=txt_filename)
             callbacks.append(csvlogger)
+
+        if tb_test_images is not None:
+            tb_test_image_writer = tf.summary.create_file_writer(tensorboard_logdir)
+            tb_test_image_writer.set_as_default()
+            nr_imgs = len(tb_test_images)
+
+            def log_test_data(epoch, logs):
+                test_reconstructions, test_sinograms = self._model(tb_test_images)
+                for i in range(0, nr_imgs):
+                    tf.summary.image(f"test_image_{i}", tf.stack([tb_test_images[i], test_reconstructions[i]]))
+            test_data_cb = LambdaCallback(on_epoch_end=log_test_data)
+            callbacks.append(test_data_cb)
+
 
         # Number of batches used.
         # Use entire dataset once.
