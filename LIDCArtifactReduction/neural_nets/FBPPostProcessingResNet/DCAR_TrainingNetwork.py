@@ -13,11 +13,9 @@ from LIDCArtifactReduction.metrics import HU_RMSE, ReconstructionReference2Noise
     Signal2NoiseStandardDeviance, RelativeError
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
-from LIDCArtifactReduction.tf_image import LogarithmicTotalVariationObjectiveFunction
 from LIDCArtifactReduction.neural_nets.ModelInterface import ModelInterface
 from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.target_networks import DCAR_TargetInterface
 from LIDCArtifactReduction.neural_nets.radon_layer import ForwardRadonLayer
-from LIDCArtifactReduction.neural_nets.FBPPostProcessingResNet.losses import MSE_TV_diff_loss
 
 
 class DCAR_TrainingNetwork(ModelInterface):
@@ -66,6 +64,22 @@ class DCAR_TrainingNetwork(ModelInterface):
     @property
     def target_model(self):
         return self._target_model
+
+
+    @staticmethod
+    def output_data_formatter(bad_reconstructions, bad_sinograms, good_reconstructions, good_sinograms, **kwargs):
+        # TODO: if upgraded to TF 2.2 remove [None]
+        # These 'None'-s correspond to weights attached to the outputs.
+        return ({DCAR_TrainingNetwork.input_name: bad_reconstructions},
+                {DCAR_TrainingNetwork.reconstruction_output_name: good_reconstructions,
+                 DCAR_TrainingNetwork.sino_output_name: good_sinograms}, [None, None])
+
+
+    @staticmethod
+    def input_data_decoder(data):
+        return data[0][DCAR_TrainingNetwork.input_name], \
+               data[1][DCAR_TrainingNetwork.reconstruction_output_name], \
+               data[1][DCAR_TrainingNetwork.sino_output_name]
 
 
     def compile(self, lr=1e-3, reconstruction_loss=None, sinogram_loss=None,
@@ -150,7 +164,7 @@ class DCAR_TrainingNetwork(ModelInterface):
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
             early_stoppig_patience: int or None = None, csv_logging: bool = False,
-            tb_test_images = None,
+            test_data = None,
             verbose=1, initial_epoch=0):
 
         ## Callbacks
@@ -184,15 +198,17 @@ class DCAR_TrainingNetwork(ModelInterface):
             csvlogger = CSVLogger(filename=txt_filename)
             callbacks.append(csvlogger)
 
-        if tb_test_images is not None:
+        if test_data is not None:
             tb_test_image_writer = tf.summary.create_file_writer(tensorboard_logdir)
             tb_test_image_writer.set_as_default()
-            nr_imgs = len(tb_test_images)
+
+            bad_rec, good_rec, good_sino = DCAR_TrainingNetwork.input_data_decoder(test_data)
+            nr_imgs = len(bad_rec)
 
             def log_test_data(epoch, logs):
-                test_reconstructions, test_sinograms = self._model(tb_test_images)
+                test_reconstructions, test_sinograms = self._model(bad_rec)
                 for i in range(0, nr_imgs):
-                    tf.summary.image(f"test_image_{i}", tf.stack([tb_test_images[i], test_reconstructions[i]]))
+                    tf.summary.image(f"test_image_{i}", tf.stack([good_rec[i], bad_rec[i], test_reconstructions[i]]))
             test_data_cb = LambdaCallback(on_epoch_end=log_test_data)
             callbacks.append(test_data_cb)
 
