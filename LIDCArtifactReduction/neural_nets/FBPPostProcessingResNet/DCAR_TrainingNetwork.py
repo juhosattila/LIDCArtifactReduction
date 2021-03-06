@@ -199,7 +199,8 @@ class DCAR_TrainingNetwork(ModelInterface):
             callbacks.append(csvlogger)
 
         if test_data is not None:
-            tb_test_image_writer = tf.summary.create_file_writer(tensorboard_logdir)
+            test_image_direc = utility.direc(tensorboard_logdir, 'case_studies')
+            tb_test_image_writer = tf.summary.create_file_writer(test_image_direc)
             tb_test_image_writer.set_as_default()
 
             bad_rec, good_rec, good_sino = DCAR_TrainingNetwork.input_data_decoder(test_data)
@@ -208,7 +209,10 @@ class DCAR_TrainingNetwork(ModelInterface):
             def log_test_data(epoch, logs):
                 test_reconstructions, test_sinograms = self._model(bad_rec)
                 for i in range(0, nr_imgs):
-                    tf.summary.image(f"test_image_{i}", tf.stack([good_rec[i], bad_rec[i], test_reconstructions[i]]))
+                    tf.summary.image(
+                        name=f"test_image_{i}", 
+                        data=tf.stack([good_rec[i], bad_rec[i], test_reconstructions[i]]),
+                        step=epoch)
             test_data_cb = LambdaCallback(on_epoch_end=log_test_data)
             callbacks.append(test_data_cb)
 
