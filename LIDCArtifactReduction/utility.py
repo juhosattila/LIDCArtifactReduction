@@ -25,7 +25,7 @@ def _process_tensorlike(img_or_imgs: Union[tf.Tensor, np.ndarray]) -> List[np.nd
     return processed_imgs
 
 
-def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=None, save_names=None, directory=None):
+def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=None, save_names=None, directory=None, show=True):
     """Multifunctional image displaying function with possible option to save the displayed image to a specified
     directory.
 
@@ -56,7 +56,8 @@ def show_grey(img_or_imgs: Union[tf.Tensor, np.ndarray, Iterable], norm_values=N
             filename = os.path.join(directory, save_names[idx] + '.png')
             plt.imsave(arr=img, fname=filename, cmap=cmap, **normargs)
             # print(filename)
-        plt.show()
+        if show:
+            plt.show()
 
 
 def analyse(arrs, names=None):
