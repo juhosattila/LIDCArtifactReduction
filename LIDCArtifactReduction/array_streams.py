@@ -28,13 +28,15 @@ class ArrayStream:
 
     def get_directory_names(self):
         with os.scandir(self._base_dir) as dirit:
-            result = [d.name for d in dirit if d.is_dir()].sort()
+            result = [d.name for d in dirit if d.is_dir()]
+        result.sort()
         return result
 
     def _get_filenames(self, inner_path='.'):
         path = os.path.join(self._base_dir, inner_path)
         with os.scandir(path) as dirit:
             result = [os.path.join(inner_path, f.name) for f in dirit if f.is_file()]
+        result.sort()
         return result
 
     def get_names_with_dir(self, dir_or_dirs : str or List[str] = None):
@@ -46,7 +48,7 @@ class ArrayStream:
             dirs = [dirs]
 
         list_results = [self._get_filenames(direc) for direc in dirs]
-        result = list(itertools.chain.from_iterable(list_results)).sort()
+        result = list(itertools.chain.from_iterable(list_results))
         return result
 
     def load_arrays(self, name_with_dir):
