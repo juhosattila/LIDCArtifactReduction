@@ -114,28 +114,28 @@ class LIDCDataGenerator:
             config = json.load(file)
         return config['train'], config['valid'], config['test']
 
-    def _get_iterator(self, transformer, arrnames):
+    def _get_iterator(self, transformer, arrnames, seed=None):
         return LIDCDataIterator(arrnames=arrnames, batch_size=self._batch_size, array_stream=self._array_stream,
-                                shuffle=self._shuffle, transformer=transformer)
+                                shuffle=self._shuffle, transformer=transformer, seed=seed)
 
-    def get_new_train_iterator(self, transformer: LIDCGeneratorTransform):
-        return self._get_iterator(transformer, self._train_arrnames)
+    def get_new_train_iterator(self, transformer: LIDCGeneratorTransform, seed=None):
+        return self._get_iterator(transformer, self._train_arrnames, seed=seed)
 
-    def get_new_validation_iterator(self, transformer: LIDCGeneratorTransform):
-        return self._get_iterator(transformer, self._valid_arrnames)
+    def get_new_validation_iterator(self, transformer: LIDCGeneratorTransform, seed=None):
+        return self._get_iterator(transformer, self._valid_arrnames, seed=seed)
 
-    def get_new_test_iterator(self, transformer: LIDCGeneratorTransform):
-        return self._get_iterator(transformer, self._test_arrnames)
+    def get_new_test_iterator(self, transformer: LIDCGeneratorTransform, seed=None):
+        return self._get_iterator(transformer, self._test_arrnames, seed=seed)
 
 
 class LIDCDataIterator(KerasImgIterator):
     def __init__(self, arrnames, batch_size, array_stream: ArrayStream,
-                 shuffle: bool, transformer: LIDCGeneratorTransform):
+                 shuffle: bool, transformer: LIDCGeneratorTransform, seed=None):
         self._arrnames = arrnames
         self._array_stream = array_stream
         self._transformer = transformer
 
-        super().__init__(len(arrnames), batch_size, shuffle=shuffle, seed=None)
+        super().__init__(len(arrnames), batch_size, shuffle=shuffle, seed=seed)
 
     def _get_batches_of_transformed_samples(self, index_array):
         """Get images with indices in index array, transform them.
