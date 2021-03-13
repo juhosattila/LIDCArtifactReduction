@@ -1,5 +1,6 @@
 from typing import List
 import numpy as np
+from tensorflow.keras.utils import Progbar
 
 import pylidc as pl
 
@@ -10,16 +11,18 @@ from LIDCArtifactReduction.utility import ProgressNumber
 
 
 class ScanWrapper:
-    def __init__(self, scan: pl.Scan, ignored_edge_slice):
+    def __init__(self, scan: pl.Scan, ignored_front_slice, ignored_end_slice):
         self._scan = scan
-        self._ignored_edge_slice = ignored_edge_slice
+        self._ignored_front_slice = ignored_front_slice
+        self._ignored_end_slice = ignored_end_slice
         self._dtype = np.float32
 
     def load_data(self, verbose=False):
         images = self._scan.load_all_dicom_images(verbose=verbose)
 
-        nr_images_ignored = np.math.floor(len(images) * self._ignored_edge_slice)
-        images = images[0: len(images)-nr_images_ignored]
+        nr_ignored_front = np.math.floor(len(images) * self._ignored_front_slice)
+        nr_ignored_end = np.math.floor(len(images) * self._ignored_end_slice)
+        images = images[nr_ignored_front: -nr_ignored_end]
 
         volume = np.stack([img.pixel_array for img in images], axis=0).astype(self._dtype)
         intercepts = np.array([img.RescaleIntercept for img in images], dtype=self._dtype)
@@ -33,17 +36,21 @@ class ScanWrapper:
 
 
 class DicomLoader:
-    def __init__(self, batch_size=10, ignored_edge_slice=0.0):
+    def __init__(self, batch_size=10, ignored_front_slice=0.30, ignored_end_slice=0.15):
         """
-        Args:
-            ignored_edge_slice: percentage of slices ignored at the end of each volume
-        """
-        if ignored_edge_slice >= 0.5:
-            raise ValueError()
+        Note that the edges of volumes contain a lot of irrelevant slices that cannot be thouroughly examinded
+        using X-ray CT modality. Hence it is possible to cut them off. In the dicom volumes around 15% slices at the
+        front and around 30% slices at the end are irrelevant. But, the scanning changes the order of slices. Hence
+        30% needs to be cut of from the front and around 15% from the end.
 
+        Args:
+            ignored_front_slice: percentage of slices ignored at the front of each volume. Around 30% are irrelevant.
+            ignored_end_slice: percentage of slices ignored at the end of each volume. Around 15% are irrelevant.
+        """
         self._batch_size = batch_size
         self._scan = pl.query(pl.Scan)
-        self._ignored_edge_slice = ignored_edge_slice
+        self._ignored_front_slice = ignored_front_slice
+        self._ignored_end_slice = ignored_end_slice
 
         self._scan_list_created = False
 
@@ -62,7 +69,7 @@ class DicomLoader:
 
     def _create_scan_list(self):
         if not self._scan_list_created:
-            self._scanw_list = [ScanWrapper(scan, self._ignored_edge_slice) for scan in self._scan.all()]
+            self._scanw_list = [ScanWrapper(scan, self._ignored_front_slice, self._ignored_end_slice) for scan in self._scan.all()]
         self._scan_list_created = True
 
     def __len__(self):
@@ -88,7 +95,8 @@ class DicomLoader:
 
         if verbose:
             print("We are starting offline transformation:")
-            progress: ProgressNumber = utility.ProgressNumber(max_value=len(self))
+            #progress: ProgressNumber = utility.ProgressNumber(max_value=len(self))
+            progbar = Progbar(len(self))
 
         for scanw_batch in self:
             patient_ids = [scanw.patient_id for scanw in scanw_batch]
@@ -112,4 +120,5 @@ class DicomLoader:
                     array_stream.save_arrays(arrname, img_data)
 
             if verbose:
-                progress.update_add(len(scanw_batch))
+                #progress.update_add(len(scanw_batch))
+                progbar.add(1)

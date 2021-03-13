@@ -17,10 +17,10 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_pyronn impo
 # patient_list = [1, 3, 5, 14]
 # patient_list = range(400, 1020, 1)
 # patient_ids = ["LIDC-IDRI-" + "{:04d}".format(id) for id in patient_list]
-# dl = DicomLoader(batch_size=7, ignored_edge_slice=0.1).filter(patient_ids)
+# dl = DicomLoader(batch_size=7, ignored_front_slice=0.30, ignored_end_slice=0.15).filter(patient_ids)
 
 # All files
-dl = DicomLoader(batch_size=7, ignored_edge_slice=0.1)
+dl = DicomLoader(batch_size=7, ignored_front_slice=0.30, ignored_end_slice=0.15)
 
 # ----------------------------
 
