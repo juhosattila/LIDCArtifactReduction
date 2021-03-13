@@ -121,4 +121,4 @@ class DicomLoader:
 
             if verbose:
                 #progress.update_add(len(scanw_batch))
-                progbar.add(1)
+                progbar.add(len(scanw_batch))
