@@ -141,22 +141,24 @@ def shape_to_4D(imgs):
 # HU stddev from where we reach radiosity levels.
 
 
-def scale_HU2Radio(imgs: TensorLike):
+def scale_HUdiff2Radiodiff(imgs: TensorLike):
+    """Scale difference of intensities on reconstructions measured in HU to difference measured in radiosity."""
     img_min = tf.constant([0.], dtype=tf.float32)
     img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
     return (imgs - img_min) / (img_max - img_min)
 
 
-def scale_Radio2HU(imgs: TensorLike):
+def scale_Radiodiff2HUdiff(imgs: TensorLike):
+    """Scale difference of intensities on reconstructions measured in radiosity to difference measured in HU."""
     img_min = tf.constant(0., dtype=tf.float32)
     img_max = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
     return imgs * (img_max - img_min) + img_min
 
 
-def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
-    """Scale an absolute grey level image to linear attenuation coefficient space, based on intercepts and slopes.
+def scale_Gray2HU(imgs: TensorLike, intercepts, slopes):
+    """Scale absolute gray level reconstructions to absolute HU levels, based on intercepts and slopes.
 
-    Air is considered to have level 0. Bone is considered to have value 1000.
+    Absolute HU levels are reached via output = img * slope + intercept.
 
     Args:
         imgs: Tensor in NHWC or HWC format.
@@ -173,16 +175,30 @@ def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
     slopes_tf = tf.convert_to_tensor(slopes, dtype=tf.float32)
     slopes_tf = expand_dim_per_image_data(slopes_tf)
 
-    bias_tf = tf.constant([1024.], dtype=tf.float32)
+    return imgs_tf * slopes_tf + intercepts_tf
+
+
+def scale_Gray2Radio(imgs: TensorLike, intercepts, slopes):
+    """Scale an absolute grey level image to radiosity (linear attenuation coefficient) space,
+     based on intercepts and slopes.
+
+    Absolute HU levels are reached via output = img * slope + intercept.
+
+    Args:
+        imgs: Tensor in NHWC or HWC format.
+    """
+    imgs_tf_HU = scale_Gray2HU(imgs, intercepts, slopes)
 
     # Without adding the bias we get absolute HU values.
-    rescaled_tf = imgs_tf * slopes_tf + intercepts_tf + bias_tf
+    bias_tf = tf.constant([1024.], dtype=tf.float32)
+    rescaled_tf = imgs_tf_HU + bias_tf
 
+    # TODO: is this needed at all?
     # scaling of (min,1000) to (0,1)
     # TODO: do it based on minimum, and not 0
     zeroed_out_tf = tf.where(rescaled_tf >= 0, rescaled_tf, tf.zeros_like(rescaled_tf))
 
-    return scale_HU2Radio(zeroed_out_tf)
+    return scale_HUdiff2Radiodiff(zeroed_out_tf)
 
 
 def _total_variation_field(imgs: TensorLike, eps=0.0):

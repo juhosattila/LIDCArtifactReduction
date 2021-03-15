@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
 
 from LIDCArtifactReduction import parameters, tf_image
-from LIDCArtifactReduction.tf_image import scale_Radio2HU, ssims_tf, mean_squares_tf, shape_to_4D, signal2noise_tf, \
+from LIDCArtifactReduction.tf_image import scale_Radiodiff2HUdiff, ssims_tf, mean_squares_tf, shape_to_4D, signal2noise_tf, \
     reference2noise_tf
 
 
@@ -66,7 +66,7 @@ class HU_RMSE(RootMeanSquaredError):
         super().__init__(name, dtype=dtype)
 
     def result(self):
-        return scale_Radio2HU(super().result())
+        return scale_Radiodiff2HUdiff(super().result())
 
 
 class HU_MAE(MeanAbsoluteError):
@@ -74,7 +74,7 @@ class HU_MAE(MeanAbsoluteError):
         super().__init__(name=name, dtype=dtype)
 
     def result(self):
-        return scale_Radio2HU(super().result())
+        return scale_Radiodiff2HUdiff(super().result())
 
 
 class ReconstructionReference2Noise(MeanBasedMetric):
