@@ -8,7 +8,7 @@ from tensorflow_addons.utils.types import TensorLike
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform, \
     RadonTransform
-from LIDCArtifactReduction.tf_image import get_rotate_translate_resampling_params
+from LIDCArtifactReduction.image.tf_image import get_rotate_translate_resampling_params
 
 
 class ForwardprojectionParallelRadonTransform(ForwardprojectionRadonTransform):

@@ -1,11 +1,11 @@
 from abc import abstractmethod
 
-import numpy as np
 import tensorflow as tf
-from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanSquaredError, MeanAbsoluteError
+from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanAbsoluteError
 
-from LIDCArtifactReduction import parameters, tf_image
-from LIDCArtifactReduction.tf_image import scale_Radiodiff2HUdiff, ssims_tf, mean_squares_tf, shape_to_4D, signal2noise_tf, \
+from LIDCArtifactReduction import parameters
+from LIDCArtifactReduction.image import tf_image
+from LIDCArtifactReduction.image.tf_image import scale_Radiodiff2HUdiff, ssims_tf, mean_squares_tf, signal2noise_tf, \
     reference2noise_tf
 
 

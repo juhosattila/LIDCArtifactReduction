@@ -1,6 +1,6 @@
 from tensorflow.keras.losses import Loss, MeanSquaredError
 
-from LIDCArtifactReduction.tf_image import total_variation_squared_mean_norm, total_variation_mean_norm, \
+from LIDCArtifactReduction.image.tf_image import total_variation_squared_mean_norm, total_variation_mean_norm, \
     logarithmic_total_variation_objective_function
 
 

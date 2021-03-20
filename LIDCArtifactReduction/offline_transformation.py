@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from LIDCArtifactReduction.radon_transformation.radon_geometry import RadonGeometry
 from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
-from LIDCArtifactReduction.tf_image import scale_Gray2Radio
+from LIDCArtifactReduction.image.tf_image import scale_Gray2Radio
 
 
 class DicomOfflineTransformation:
@@ -17,10 +17,15 @@ class DummyOfflineTransformation(DicomOfflineTransformation):
 
 
 class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
+    # This reference is equal to the mean of bronchial-torso root mean squares across all reconstructions volumes.
+    LIDC_REFERENCE_BRONCHIAL_TORSO_MEAN = 1.0433
+
     """Resizes images to the input size of the Radon transformation"""
-    def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ForwardprojectionRadonTransform):
+    def __init__(self, radon_geometry: RadonGeometry, radon_transformation: ForwardprojectionRadonTransform,
+                 normalise_bronchial_torso=False):
         self._resize_target = [radon_geometry.volume_img_width, radon_geometry.volume_img_width]
         self._radon_transformation = radon_transformation
+        self._normalise_bronchial_torso = normalise_bronchial_torso
 
     def __call__(self, data_batch, intercepts, slopes):
         scaled_data_batch, data_sino_batch = self._transformation(data_batch, intercepts, slopes)
@@ -39,8 +44,12 @@ class ResizeRescaleRadonOfflineTransformation(DicomOfflineTransformation):
     # Toggle for performance, if needed and sizes are fixed.
     # @tf.function
     def _tf_transformation(self, data_batch, intercepts, slopes):
-        data_batch = tf.expand_dims(data_batch, axis=-1)
-        resized_data = tf.image.resize(data_batch, size=self._resize_target)
+        data_batch_4D = tf.expand_dims(data_batch, axis=-1)
+        resized_data = tf.image.resize(data_batch_4D, size=self._resize_target)
         scaled_data = scale_Gray2Radio(resized_data, intercepts, slopes)
+
+        # TODO: rewrite to tensorflow, if slow. DO NOT INCLUDE tf.function, if not well examined
+        # TODO: include here normalisation in some form
+
         data_sino = self._radon_transformation.forwardproject(scaled_data)
         return scaled_data, data_sino

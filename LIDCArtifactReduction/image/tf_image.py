@@ -140,19 +140,28 @@ def shape_to_4D(imgs):
 # Absolute gray levels is a concept found in dicom files. Interceps and slopes give the transformation to an absolute
 # HU stddev from where we reach radiosity levels.
 
+def scale_HU2Radio(imgs: TensorLike):
+    img_min = tf.constant(-1024, dtype=tf.float32)
+    scaler = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
+    return (imgs - img_min) / scaler
+
+
+def scale_Radio2HU(imgs: TensorLike):
+    img_min = tf.constant(-1024, dtype=tf.float32)
+    scaler = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
+    return imgs * scaler + img_min
+
 
 def scale_HUdiff2Radiodiff(imgs: TensorLike):
     """Scale difference of intensities on reconstructions measured in HU to difference measured in radiosity."""
-    img_min = tf.constant([0.], dtype=tf.float32)
-    img_max = tf.constant([parameters.HU_TO_CT_SCALING], dtype=tf.float32)
-    return (imgs - img_min) / (img_max - img_min)
+    scaler = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
+    return imgs / scaler
 
 
 def scale_Radiodiff2HUdiff(imgs: TensorLike):
     """Scale difference of intensities on reconstructions measured in radiosity to difference measured in HU."""
-    img_min = tf.constant(0., dtype=tf.float32)
-    img_max = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
-    return imgs * (img_max - img_min) + img_min
+    scaler = tf.constant(parameters.HU_TO_CT_SCALING, dtype=tf.float32)
+    return imgs * scaler
 
 
 def scale_Gray2HU(imgs: TensorLike, intercepts, slopes):
