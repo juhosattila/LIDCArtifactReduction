@@ -82,56 +82,7 @@ class DCAR_TrainingNetwork(ModelInterface):
                data[1][DCAR_TrainingNetwork.sino_output_name]
 
 
-    def compile(self, lr=1e-3, reconstruction_loss=None, sinogram_loss=None,
-                reconstruction_output_weight=1.0,
-                sino_output_weight : float or 'auto' or None = 'auto',
-                add_total_variation=True, total_variation_eps=1.0, tot_var_loss_weight=1e-3,
-                mse_tv_weight=3.0):
-        """
-        Args:
-             sino_output_weight: if 'auto', it is specified as 1.0 / self._radon_geometry.nr_projections
-        """
-        # _sino_output_weight: float or 'auto' or None = sino_output_weight
-        # if _sino_output_weight == 'auto':
-        #     _sino_output_weight = 1.0 / self._radon_geometry.nr_projections
-
-        # TODO: delete if not necessary
-        # # Losses
-
-        # # This is added only once, because it becomes part of the topology.
-        # # TODO: make it removeable.
-        # # !!! If once added, it will stay in the topology, hence a second call to compile with add_tv=false will have
-        # # no effect.
-        # if add_total_variation and not self._total_variation_loss_set:
-        #     tot_var_regualizer = LogarithmicTotalVariationObjectiveFunction(total_variation_eps)
-        #
-        #     self._model.add_loss(tot_var_regualizer(self._expected_output_layer) * tot_var_loss_weight)
-        #     self._total_variation_loss_set = True
-        #
-        #
-        # # TODO: if necessary, make it switcheable from API
-        # # Loss settings:
-        #
-        # # First setting.
-        # # losses = {DCAR_TrainingNetwork.reconstruction_output_name : MeanSquaredError(name='mse_reconstrction'),
-        # #           DCAR_TrainingNetwork.sino_output_name : MeanSquaredError(name='mse_radon_space')}
-        #
-        # # The second one contains a TV L2 squared loss on the differenceimage in order to preserve edges.
-        # # losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-        # #               LIDCArtifactReduction.losses.MSE_TV_squared_diff_loss(tv_weight=mse_tv_weight,
-        # #                                                                     name='mse_tv_square_diff'),
-        # #           DCAR_TrainingNetwork.sino_output_name: MeanSquaredError(name='mse_radon_space')}
-        #
-        # # Third setting: TV L1.
-        # losses = {DCAR_TrainingNetwork.reconstruction_output_name:
-        #               MSE_TV_diff_loss(tv_weight=mse_tv_weight, name='mse_tv_square_diff'),
-        #           DCAR_TrainingNetwork.sino_output_name:
-        #               keras.losses.MeanSquaredError(name='mse_radon_space')}
-        #
-        #
-        # loss_weights = {DCAR_TrainingNetwork.reconstruction_output_name : reconstruction_output_weight,
-        #                 DCAR_TrainingNetwork.sino_output_name : sino_output_weight}
-
+    def compile(self, lr=1e-3, reconstruction_loss=None, sinogram_loss=None, **kwargs):
         # Losses:
         losses = {DCAR_TrainingNetwork.reconstruction_output_name: reconstruction_loss,
                   DCAR_TrainingNetwork.sino_output_name: sinogram_loss}
@@ -164,7 +115,7 @@ class DCAR_TrainingNetwork(ModelInterface):
     def fit(self, train_iterator, validation_iterator,
             epochs: int, steps_per_epoch=None, validation_steps=None,
             early_stoppig_patience: int or None = None, csv_logging: bool = False,
-            test_data = None,
+            test_data=None,
             verbose=1, initial_epoch=0):
 
         ## Callbacks
@@ -175,7 +126,6 @@ class DCAR_TrainingNetwork(ModelInterface):
         file = os.path.join(self.weight_dir, name_datetime)
         #file = file + '.{epoch:02d}-{' + monitored_value + ':.1f}' + self._model_weights_extension
         file = file + '-HUMAE-{' + monitored_value + ':.1f}' + self._model_weights_extension
-        #file = file + self._model_weights_extension
         checkpointer = ModelCheckpoint(
                         monitor=monitored_value,
                         filepath=file, save_best_only=True,
@@ -228,16 +178,25 @@ class DCAR_TrainingNetwork(ModelInterface):
                         epochs=epochs, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
                         callbacks=callbacks, verbose=verbose, initial_epoch=initial_epoch)
 
-    def predict(self, data_iterator, steps=None, verbose=1):
-        # Tensorboard and logging
-        datetimenow = datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "predict", datetimenow)
-        tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
-        txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "predict")
-        txt_filename = os.path.join(txt_logdir, datetimenow + '.log')
-        csvlogger = CSVLogger(filename=txt_filename)
 
-        callbacks = [tensorboard, csvlogger]
+    def predict(self, data_iterator, steps=None,
+                tensorboard_logging: bool = False, csv_logging: bool = False,
+                verbose=1):
+        callbacks = []
+
+        name_datetime = self.name + '-' + datetime.now().strftime("%Y%m%d-%H%M")
+        # Tensorboard
+        if tensorboard_logging:
+            tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "predict", name_datetime)
+            tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
+            callbacks.append(tensorboard)
+
+        # CSV logging
+        if csv_logging:
+            txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "predict")
+            txt_filename = os.path.join(txt_logdir, name_datetime + '.log')
+            csvlogger = CSVLogger(filename=txt_filename)
+            callbacks.append(csvlogger)
 
         # Number of batches used.
         # Use entire dataset once.
@@ -246,4 +205,29 @@ class DCAR_TrainingNetwork(ModelInterface):
 
         return self._model.predict(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)
 
-    # TODO: evaluation
+
+    def evaluate(self, data_iterator, steps=None,
+                tensorboard_logging: bool = False, csv_logging: bool = False,
+                verbose=1):
+        callbacks = []
+
+        name_datetime = self.name + '-' + datetime.now().strftime("%Y%m%d-%H%M")
+        # Tensorboard
+        if tensorboard_logging:
+            tensorboard_logdir = utility.direc(self._directory_system.TENSORBOARD_LOGDIR, "evaluate", name_datetime)
+            tensorboard = TensorBoard(log_dir=tensorboard_logdir, histogram_freq=1, write_graph=True)
+            callbacks.append(tensorboard)
+
+        # CSV logging
+        if csv_logging:
+            txt_logdir = utility.direc(self._directory_system.CSV_LOGDIR, "evaluate")
+            txt_filename = os.path.join(txt_logdir, name_datetime + '.log')
+            csvlogger = CSVLogger(filename=txt_filename)
+            callbacks.append(csvlogger)
+
+        # Number of batches used.
+        # Use entire dataset once.
+        if steps is None:
+            steps: int = len(data_iterator)
+
+        return self._model.evaluate(x=data_iterator, steps=steps, callbacks=callbacks, verbose=verbose)
