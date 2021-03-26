@@ -31,6 +31,7 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
         if self._test_mode:
             return reconstructions, sinograms, bad_sinograms_tf.numpy(), actual_reconstructions_tf.numpy()
 
+        # TODO: change it back to the output function of the corresponding class
         return self.output_data_formatter(
             actual_reconstructions=actual_reconstructions_tf,
             bad_sinograms=bad_sinograms_tf,
