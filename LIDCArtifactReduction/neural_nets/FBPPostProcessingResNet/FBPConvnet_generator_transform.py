@@ -10,12 +10,14 @@ from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts i
 # TODO: make this usable with TensorflowMathMixin. Inject instead of inheriting. Inverting Radon is needed.
 class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
     def __init__(self, geometry: RadonGeometry, radon_transform: RadonTransform,
-                 add_noise: bool, lnI0=5 * np.log(10), sigma=0.3, sum_scaling=5.0,
+                 output_data_formatter=DCAR_TrainingNetwork.output_data_formatter,
+                 add_noise: bool=True, lnI0=5 * np.log(10), sigma=0.3, sum_scaling=5.0,
                  test_mode: bool = False):
         super().__init__(geometry=geometry,
                          add_noise=add_noise, lnI0=lnI0, sigma=sigma, sum_scaling=sum_scaling,
                          test_mode=test_mode)
         self._radon_transform = radon_transform
+        self._output_data_formatter = output_data_formatter
 
     def transform(self, reconstructions, sinograms):
         noisy_sinograms = self.generate_sinogram_noise(sinograms) if self.add_noise else sinograms
@@ -24,15 +26,17 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
         if self._test_mode:
             return self._test_format_manager(bad_reconstructions, reconstructions, sinograms, noisy_sinograms)
 
-        return self._output_format_manager(bad_reconstructions, reconstructions, sinograms)
+        return self._output_data_formatter(bad_reconstructions, reconstructions, sinograms)
 
-    # TODO: probably should be provided directly by network. Similarly to all other spots.
-    def _output_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms):
-        # TODO: if upgraded to TF 2.2 remove [None]
-        # These 'None'-s correspond to weights attached to the outputs.
-        return ({DCAR_TrainingNetwork.input_name : bad_reconstructions},
-                {DCAR_TrainingNetwork.reconstruction_output_name : good_reconstructions,
-                 DCAR_TrainingNetwork.sino_output_name : good_sinograms}, [None, None])
+        #return self._output_format_manager(bad_reconstructions, reconstructions, sinograms)
+
+    # # TODO: probably should be provided directly by network. Similarly to all other spots.
+    # def _output_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms):
+    #     # TODO: if upgraded to TF 2.2 remove [None]
+    #     # These 'None'-s correspond to weights attached to the outputs.
+    #     return ({DCAR_TrainingNetwork.input_name : bad_reconstructions},
+    #             {DCAR_TrainingNetwork.reconstruction_output_name : good_reconstructions,
+    #              DCAR_TrainingNetwork.sino_output_name : good_sinograms}, [None, None])
 
     def _test_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms, bad_sinograms):
         return bad_reconstructions, [good_reconstructions, good_sinograms], bad_sinograms
