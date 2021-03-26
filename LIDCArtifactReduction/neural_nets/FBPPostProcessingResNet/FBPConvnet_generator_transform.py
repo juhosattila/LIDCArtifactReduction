@@ -24,7 +24,7 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
         if self._test_mode:
             return self._test_format_manager(bad_reconstructions, reconstructions, sinograms, noisy_sinograms)
 
-        return DCAR_TrainingNetwork.output_data_formatter(
+        return DCAR_TrainingNetwork.input_data_encoder(
                     bad_reconstructions=bad_reconstructions,
                     bad_sinograms=noisy_sinograms,
                     good_reconstructions=reconstructions,
