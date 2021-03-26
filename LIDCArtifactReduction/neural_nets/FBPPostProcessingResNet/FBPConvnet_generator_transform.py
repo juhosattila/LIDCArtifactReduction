@@ -30,15 +30,5 @@ class FBPConvnetGeneratorTransform(NumpyMathMixin, LIDCGeneratorNoisyTransform):
                     good_reconstructions=reconstructions,
                     good_sinograms=sinograms)
 
-        #return self._output_format_manager(bad_reconstructions, reconstructions, sinograms)
-
-    # # TODO: probably should be provided directly by network. Similarly to all other spots.
-    # def _output_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms):
-    #     # TODO: if upgraded to TF 2.2 remove [None]
-    #     # These 'None'-s correspond to weights attached to the outputs.
-    #     return ({DCAR_TrainingNetwork.input_name : bad_reconstructions},
-    #             {DCAR_TrainingNetwork.reconstruction_output_name : good_reconstructions,
-    #              DCAR_TrainingNetwork.sino_output_name : good_sinograms}, [None, None])
-
     def _test_format_manager(self, bad_reconstructions, good_reconstructions, good_sinograms, bad_sinograms):
         return bad_reconstructions, [good_reconstructions, good_sinograms], bad_sinograms
