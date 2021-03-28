@@ -102,8 +102,8 @@ class DCAR_TrainingNetwork(ModelInterface):
                          Signal2NoiseStandardDeviance(name='rec_snr_std'),
                          SSIM(name='rec_ssim'),
                          RelativeError(name='rec_rel_err'),
-                         RadonMeanSquaredError(name='radon_mse'),
-                         RadonRelativeError(name='radon_rel_error')
+                         RadonMeanSquaredError(radon_transformation=self._radon_transformation, name='radon_mse'),
+                         RadonRelativeError(radon_transformation=self._radon_transformation, name='radon_rel_error')
                          ],
                     DCAR_TrainingNetwork.sino_output_name:
                         [keras.losses.MeanSquaredError(name='sino_mse'),
