@@ -1,12 +1,13 @@
 from abc import abstractmethod
 
 import tensorflow as tf
-from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanAbsoluteError
+from tensorflow.keras.metrics import Metric, Mean, RootMeanSquaredError, MeanAbsoluteError, MeanSquaredError
 
 from LIDCArtifactReduction import parameters
 from LIDCArtifactReduction.image import tf_image
 from LIDCArtifactReduction.image.tf_image import scale_Radiodiff2HUdiff, ssims_tf, mean_squares_tf, signal2noise_tf, \
     reference2noise_tf
+from LIDCArtifactReduction.radon_transformation.radon_transformation_abstracts import ForwardprojectionRadonTransform
 
 
 class MeanBasedMetric(Metric):
@@ -134,3 +135,26 @@ class RelativeError(MeanBasedMetric):
 
     def _objective_function(self, y_true, y_pred):
         return tf_image.relative_errors_tf(y_true, y_pred)
+
+
+class RadonMeanSquaredError(MeanSquaredError):
+    def __init__(self, radon_transformation: ForwardprojectionRadonTransform, name='radon_mse', dtype=None):
+        super().__init__(name, dtype=dtype)
+        self._radon_transformation = radon_transformation
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        super().update_state(
+            self._radon_transformation.forwardproject(y_true),
+            self._radon_transformation.forwardproject(y_pred),
+            sample_weight=sample_weight)
+
+
+class RadonRelativeError(RelativeError):
+    def __init__(self, radon_transformation: ForwardprojectionRadonTransform, name='radon_rel_error', dtype=None):
+        super().__init__(name, dtype=dtype)
+        self._radon_transformation = radon_transformation
+
+    def _objective_function(self, y_true, y_pred):
+        return super()._objective_function(
+            self._radon_transformation.forwardproject(y_true),
+            self._radon_transformation.forwardproject(y_pred))
