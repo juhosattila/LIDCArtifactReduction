@@ -12,6 +12,11 @@ class LIDCGeneratorTransform:
         pass
 
 
+class IdentityLIDCGeneratorTransform(LIDCGeneratorTransform):
+    def transform(self, reconstructions, sinograms):
+        return reconstructions, sinograms
+
+
 class LIDCGeneratorNoisyTransform(LIDCGeneratorTransform, MathMixin):
     def __init__(self, geometry: RadonGeometry,
                  add_noise: bool, lnI0, sigma=0.3, sum_scaling=5.0, test_mode: bool=False):

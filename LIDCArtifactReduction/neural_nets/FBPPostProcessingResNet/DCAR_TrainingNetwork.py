@@ -67,7 +67,7 @@ class DCAR_TrainingNetwork(ModelInterface):
 
 
     @staticmethod
-    def output_data_formatter(bad_reconstructions, bad_sinograms, good_reconstructions, good_sinograms, **kwargs):
+    def input_data_encoder(bad_reconstructions, bad_sinograms, good_reconstructions, good_sinograms, **kwargs):
         # TODO: if upgraded to TF 2.2 remove [None]
         # These 'None'-s correspond to weights attached to the outputs.
         return ({DCAR_TrainingNetwork.input_name: bad_reconstructions},
