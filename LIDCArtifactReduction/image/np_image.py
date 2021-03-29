@@ -25,7 +25,7 @@ def mean_absolute_errors_HU_np(imgs1, imgs2):
 
 def mean_squares_np(imgs):
     """Result is of shape (N,) or ()."""
-    return mean_squares_tf(imgs)
+    return mean_squares_tf(imgs).numpy()
 
 
 #### ================================================================================#####
