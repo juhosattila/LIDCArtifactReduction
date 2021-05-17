@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Conv2D, \
 from LIDCArtifactReduction.neural_nets.residual_UNet.residual_UNet_abstract import ResidualUNetAbstract
 
 
-class ResidualUNetManyBatchNorms(ResidualUNetAbstract):
+class ResidualUNetManyBNsTransConv(ResidualUNetAbstract):
     """Defaults are made according to article
     Huang, Wurfle: Some investigations on Robustness of Deep Learning in Limited Andle Tomography (2018).
     This means that by default there is batch norm, there is No dropout and activation after upsampling.
@@ -46,22 +46,22 @@ class ResidualUNetManyBatchNorms(ResidualUNetAbstract):
 
         d4 = self._possible_dropout()(d4)
 
-        u3 = self._resize_conv(512)(d4)
+        u3 = self._trans_conv(512)(d4)
         u3 = Concatenate()([d3, u3])
         u3 = self._conv_k3_activation_possible_batchnorm(512)(u3)
         u3 = self._conv_k3_activation_possible_batchnorm(512)(u3)
 
-        u2 = self._resize_conv(256)(u3)
+        u2 = self._trans_conv(256)(u3)
         u2 = Concatenate()([d2, u2])
         u2 = self._conv_k3_activation_possible_batchnorm(256)(u2)
         u2 = self._conv_k3_activation_possible_batchnorm(256)(u2)
 
-        u1 = self._resize_conv(128)(u2)
+        u1 = self._trans_conv(128)(u2)
         u1 = Concatenate()([d1, u1])
         u1 = self._conv_k3_activation_possible_batchnorm(128)(u1)
         u1 = self._conv_k3_activation_possible_batchnorm(128)(u1)
 
-        u0 = self._resize_conv(64)(u1)
+        u0 = self._trans_conv(64)(u1)
         u0 = Concatenate()([d0, u0])
         u0 = self._conv_k3_activation_possible_batchnorm(64)(u0)
         u0 = self._conv_k3_activation_possible_batchnorm(64)(u0)

@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model
-from tensorflow.keras import metrics
 from tensorflow.keras import optimizers
 from tensorflow.keras.utils import Progbar
 
@@ -20,11 +19,10 @@ class IterativeARTResNetTrainingV3(ModelInterface):
     def __init__(self, radon_transformation: ForwardprojectionRadonTransform,
                  target_model: IterativeARTResNet, dir_system: DirectorySystem,
                  name=None):
-        super().__init__(name=name)
+        super().__init__(name=name, weight_dir=dir_system.MODEL_WEIGHTS_DIRECTORY)
 
         self._radon_transformation = radon_transformation
         self._target_model = target_model
-        self._weight_dir = dir_system.MODEL_WEIGHTS_DIRECTORY
 
         self._build()
 
@@ -81,6 +79,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
         """
         self.final_level = final_level
 
+        # TODO: make some consistency
         self.reconstruction_weight_amplifier = tf.convert_to_tensor(reconstruction_weight_amplifier, dtype=tf.float32)
         self.reconstructions_output_weight = reconstructions_output_weight
         self.measurement_consistency_weight = measurement_consistency_weight
@@ -88,6 +87,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
         self.gradient_weight = gradient_weight
 
         # Setting metrics.
+        # TODO: Rethink possible metrics.
         self._all_metrics = []
         # Possibilities: Rec: MSE, RMSE, MAE, MSE in HU, MAE in HU, RMSE in HU, RNR, SNR, SSIM, relative error
         #           New: SNR, Standard Variance on SNR (or any)
@@ -96,7 +96,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
         #                differential: MS
         self._metrics_iteration_reconstructions = []
         for i in range(self.final_level):
-            self._metrics_iteration_reconstructions.append(metrics.MeanSquaredError(f'rec_mse_{i+1}'))
+            self._metrics_iteration_reconstructions.append(keras.metrics.MeanSquaredError(f'rec_mse_{i+1}'))
         self._all_metrics += self._metrics_iteration_reconstructions
         self._metrics_final_reconstruction = [HU_MAE('rec_HU_mae'),
                                               ReconstructionReference2Noise('rec_snr'),

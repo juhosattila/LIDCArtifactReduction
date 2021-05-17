@@ -44,6 +44,8 @@ class PyronnParallelForwardprojectionRadonTransform(ForwardprojectionRadonTransf
     # @tf.function
     def forwardproject(self, imgs: TensorLike):
         imgs_tf = tf.convert_to_tensor(imgs, dtype=tf.float32)
+        # This row is needed if rank of output is not changed in parallel_projection2d gradient.
+        imgs_tf = tf.reshape(imgs_tf, shape=tf.shape(imgs_tf)[:3])
         sinos_3D = parallel_projection2d(imgs_tf, self._geometry)  # removes channeldimension
         sinos_4D = tf.expand_dims(sinos_3D, axis=-1)
         return sinos_4D
@@ -57,6 +59,8 @@ class PyronnParallelBackprojectionRadonTransform(BackprojectionRadonTransform):
     #@tf.function
     def backproject(self, sinos: TensorLike):
         sinos_tf = tf.convert_to_tensor(sinos, dtype=tf.float32)
+        # This row is needed if rank of output is not changed in parallel_backprojection2d gradient.
+        sinos_tf = tf.reshape(sinos_tf, shape=tf.shape(sinos_tf)[:3])
         recos_3D = parallel_backprojection2d(sinos_tf, self._geometry)  # removes channeldimension
         recos_4D = tf.expand_dims(recos_3D, axis=-1)
         return recos_4D

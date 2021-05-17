@@ -28,14 +28,10 @@ def mean_squares_np(imgs):
     return mean_squares_tf(imgs).numpy()
 
 
-#### ================================================================================#####
-# TODO: think if these fit here. They do not use tensorflow in their implementation.
-
 def segment_lung(img, return_padded=False, return_thresholded_img=False):
     """Works in volume, i.e. NHW, or slice, i.e. HW, modes. Channel dimension is forbidden."""
     rank = np.ndim(img)
     thresholded_img = np.array(scale_Radio2HU(img) > -500, dtype=np.int)
-
 
     if rank == 2:
         padded_thresholded_img = np.pad(thresholded_img, pad_width=((1, 1), (1, 1)), constant_values=0)
