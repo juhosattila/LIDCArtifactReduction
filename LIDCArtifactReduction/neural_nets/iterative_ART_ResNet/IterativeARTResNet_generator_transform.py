@@ -33,7 +33,7 @@ class IterativeARTResNetGeneratorTransform(TensorflowMathMixin, LIDCGeneratorNoi
 
 
 
-        raise NotImplementedError()
+        #raise NotImplementedError()
         # TODO: change it back to the output function of the corresponding class
         # TODO: change naming
         return self.output_data_formatter(

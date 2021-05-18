@@ -117,7 +117,8 @@ class IterativeARTResNetTrainingV3(ModelInterface):
             self._metrics_gradient = [MeanSumSquare('gradient_mss')]
             self._all_metrics += self._metrics_gradient
 
-        self._model.compile(optimizer=optimizers.Adam(lr))
+        # self._model.compile(optimizer=optimizers.Adam(lr))
+        self.optimizer = optimizers.Adam(lr)
 
 
     # TODO: is tf.function needed, or not?
@@ -176,7 +177,8 @@ class IterativeARTResNetTrainingV3(ModelInterface):
 
         loss_gradient = tape.gradient(total_loss, self._model.trainable_variables)
         # Update weights
-        self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
+        #self._model.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
+        self.optimizer.apply_gradients(zip(loss_gradient, self._model.trainable_variables))
 
         # Update other metrics
         for m in self._metrics_final_reconstruction:
@@ -198,7 +200,7 @@ class IterativeARTResNetTrainingV3(ModelInterface):
             print("Saving model")
             self._model.save_weights(
                 filepath=os.path.join(self._weight_dir, self._name) + '-' + self._monitored_metric.name + '-' +
-                         '{a:.3f}'.format(a=self._monitored_metric.result().numpy()[0]) + '.hdf5')
+                         '{a:.3f}'.format(a=self._monitored_metric.result().numpy()) + '.hdf5')
 
             for m in self._all_metrics:
                 m.reset_states()
