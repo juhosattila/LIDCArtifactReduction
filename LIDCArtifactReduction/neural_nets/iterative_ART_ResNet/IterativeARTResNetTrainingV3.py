@@ -205,3 +205,61 @@ class IterativeARTResNetTrainingV3(ModelInterface):
             for m in self._all_metrics:
                 m.reset_states()
             # Possible validation could be added here.
+
+
+    def _test_step(self, data):
+        actual_reconstructions_0, bad_sinograms, good_reconstructions, good_sinograms = \
+            IterativeARTResNetTrainingV3.input_data_decoder(data)
+
+        mse = keras.losses.MeanSquaredError()
+
+        def step_level_i(i, actual_reconstructions):
+
+            inputs = {IterativeARTResNet.imgs_input_name: actual_reconstructions,
+                      IterativeARTResNet.sinos_input_name: bad_sinograms}
+
+            if self.gradient_weight is not None:
+                with tf.autodiff.ForwardAccumulator(
+                        primals=actual_reconstructions,
+                        tangents=tf.math.l2_normalize(good_reconstructions - actual_reconstructions, axis=[1, 2, 3])
+                ) as acc:
+                    reconstruction_output, kernel_error_output, radon_output = self._model(inputs, training=False)
+
+                tangent_der = acc.jvp(reconstruction_output)
+                for m in self._metrics_gradient:
+                    m.update_state(tangent_der)
+            else:
+                reconstruction_output, kernel_error_output, radon_output = self._model(inputs, training=False)
+
+            self._metrics_iteration_reconstructions[i].update_state(good_reconstructions, reconstruction_output)
+
+            if self.measurement_consistency_weight is not None:
+                for m in self._metrics_measurement_consistency:
+                    m.update_state(radon_output, good_sinograms)
+
+            if self.kernel_error_weight is not None:
+                for m in self._metrics_kernel_error:
+                    m.update_state(kernel_error_output)
+
+            return i + 1, reconstruction_output
+
+
+        _, actual_reconstructions_final = \
+            tf.while_loop(cond=lambda i, *args, **kwargs: i < self.final_level,
+                          body=step_level_i,
+                          loop_vars=(0, actual_reconstructions_0),
+                          swap_memory=True)
+
+        # Update other metrics
+        for m in self._metrics_final_reconstruction:
+            m.update_state(good_reconstructions, actual_reconstructions_final)
+
+
+    def evaluate(self, test_iterator, steps):
+        progbar = Progbar(steps, verbose=1, stateful_metrics=[m.name for m in self._all_metrics])
+        for step in range(1, steps + 1):
+            data = next(test_iterator)
+            self._test_step(data)
+
+            if step % 1 == 0:
+                progbar.update(step, values=[(m.name, m.result().numpy()) for m in self._all_metrics])
